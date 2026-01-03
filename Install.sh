@@ -30,12 +30,12 @@ apt update -y || true
 echo "[3/9] Instalando dependencias..."
 apt install -y curl wget git jq nano build-essential || true
 
-echo "[4/9] Instalando Node.js 20 (limpio)..."
+echo "[4/9] Instalando Node.js 20 (limpio y forzado)..."
 
-apt remove -y nodejs libnode-dev >/dev/null 2>&1 || true
-apt purge -y nodejs libnode-dev >/dev/null 2>&1 || true
-apt autoremove -y >/dev/null 2>&1 || true
+dpkg --remove --force-remove-reinstreq libnode-dev 2>/dev/null || true
+dpkg --remove --force-remove-reinstreq nodejs 2>/dev/null || true
 rm -rf /usr/include/node /usr/lib/node_modules
+apt clean
 
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt install -y nodejs
