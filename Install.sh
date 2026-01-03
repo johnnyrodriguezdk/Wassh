@@ -1,44 +1,47 @@
 #!/bin/bash
-set -e
 
+export DEBIAN_FRONTEND=noninteractive
 clear
-echo "===================================="
-echo "      WASSH FULL INSTALLER"
-echo "===================================="
 
-# Root
+echo "=================================="
+echo "   WASSH INSTALLER (RESET TOTAL)"
+echo "=================================="
+
+# Root check
 if [ "$EUID" -ne 0 ]; then
-  echo "Ejecutar como root"
+  echo "❌ Ejecutar como root"
   exit 1
 fi
 
 BASE="/opt/wassh"
 BIN="/usr/bin/wassh"
 
-echo "[1/10] Deteniendo procesos previos..."
-pkill -f wassh || true
-pkill -f node || true
+echo "[0/9] Deteniendo procesos anteriores..."
+pkill -f wassh 2>/dev/null || true
+pkill -f node 2>/dev/null || true
 
-echo "[2/10] Eliminando instalación anterior..."
-rm -rf $BASE
-rm -f $BIN
+echo "[1/9] Eliminando instalación previa..."
+rm -rf "$BASE"
+rm -f "$BIN"
 
-echo "[3/10] Actualizando sistema..."
-apt update -y && apt upgrade -y
+echo "[2/9] Actualizando índices APT..."
+apt update -y || true
 
-echo "[4/10] Instalando dependencias..."
-apt install -y curl wget git jq nano build-essential
+echo "[3/9] Instalando dependencias..."
+apt install -y curl wget git jq nano build-essential || true
 
-echo "[5/10] Instalando Node.js 20..."
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt install -y nodejs
+echo "[4/9] Instalando Node.js 20..."
+if ! node -v 2>/dev/null | grep -q "v20"; then
+  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  apt install -y nodejs
+fi
 
-echo "[6/10] Creando estructura..."
-mkdir -p $BASE/{bot,config,data,session}
+echo "[5/9] Creando estructura..."
+mkdir -p "$BASE"/{bot,config,data,session}
 
-echo "[7/10] Creando JSON de configuración..."
+echo "[6/9] Creando JSON de configuración..."
 
-cat > $BASE/config/bot.json <<EOF
+cat > "$BASE/config/bot.json" <<EOF
 {
   "bot_name": "WASSH BOT",
   "whatsapp": "",
@@ -46,7 +49,7 @@ cat > $BASE/config/bot.json <<EOF
 }
 EOF
 
-cat > $BASE/config/mp.json <<EOF
+cat > "$BASE/config/mp.json" <<EOF
 {
   "access_token": "",
   "currency": "ARS",
@@ -58,7 +61,7 @@ cat > $BASE/config/mp.json <<EOF
 }
 EOF
 
-cat > $BASE/config/ssh.json <<EOF
+cat > "$BASE/config/ssh.json" <<EOF
 {
   "adduser_script": "/bin/adduser",
   "test_days": 1,
@@ -67,12 +70,12 @@ cat > $BASE/config/ssh.json <<EOF
 }
 EOF
 
-echo "{}" > $BASE/data/orders.json
-echo "{}" > $BASE/data/users.json
+echo "{}" > "$BASE/data/orders.json"
+echo "{}" > "$BASE/data/users.json"
 
-echo "[8/10] Instalando BOT WhatsApp..."
+echo "[7/9] Instalando BOT WhatsApp..."
 
-cd $BASE/bot
+cd "$BASE/bot" || exit 1
 
 cat > package.json <<EOF
 {
@@ -114,35 +117,19 @@ async function startBot() {
       console.log("📱 Escanee el QR:")
       qrcode.generate(qr, { small: true })
     }
-    if (connection === 'open') {
-      console.log("✅ Bot conectado correctamente")
-    }
-    if (connection === 'close') {
-      console.log("❌ Conexión cerrada")
-    }
+    if (connection === 'open') console.log("✅ Bot conectado")
+    if (connection === 'close') console.log("❌ Conexión cerrada")
   })
 
   sock.ev.on('creds.update', saveCreds)
-
-  sock.ev.on('messages.upsert', async ({ messages }) => {
-    const msg = messages[0]
-    if (!msg.message || msg.key.fromMe) return
-
-    const text = msg.message.conversation || ""
-    if (text === "menu") {
-      await sock.sendMessage(msg.key.remoteJid, {
-        text: "🟢 WASSH BOT\n\n1️⃣ Comprar SSH\n2️⃣ Test Gratis\n3️⃣ Info"
-      })
-    }
-  })
 }
 
 startBot()
 EOF
 
-echo "[9/10] Creando comando wassh..."
+echo "[8/9] Creando comando wassh..."
 
-cat > $BIN <<'EOF'
+cat > "$BIN" <<'EOF'
 #!/bin/bash
 CONF="/opt/wassh/config/bot.json"
 
@@ -157,26 +144,26 @@ read -p "Opción: " op
 case $op in
 1)
   read -p "Número WhatsApp (549...): " num
-  jq ".whatsapp=\"$num\"" $CONF > /tmp/bot.json && mv /tmp/bot.json $CONF
-  echo "Número guardado"
+  jq ".whatsapp=\"$num\"" "$CONF" > /tmp/bot.json && mv /tmp/bot.json "$CONF"
+  echo "✅ Número guardado"
 ;;
 2)
   nano /opt/wassh/config/mp.json
 ;;
 3)
-  pkill -f node || true
+  pkill -f node 2>/dev/null || true
   nohup node /opt/wassh/bot/index.js >/var/log/wassh.log 2>&1 &
-  echo "Bot iniciado"
+  echo "🤖 Bot iniciado"
 ;;
 0) exit ;;
 esac
 EOF
 
-chmod +x $BIN
+chmod +x "$BIN"
 
-echo "[10/10] INSTALACIÓN FINALIZADA"
+echo "[9/9] INSTALACIÓN COMPLETA"
 echo
 echo "👉 Ejecutar: wassh"
 echo "👉 Configurar número"
-echo "👉 Iniciar bot y escanear QR"
+echo "👉 Iniciar bot"
 echo
