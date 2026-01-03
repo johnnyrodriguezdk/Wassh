@@ -30,11 +30,15 @@ apt update -y || true
 echo "[3/9] Instalando dependencias..."
 apt install -y curl wget git jq nano build-essential || true
 
-echo "[4/9] Instalando Node.js 20..."
-if ! node -v 2>/dev/null | grep -q "v20"; then
-  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-  apt install -y nodejs
-fi
+echo "[4/9] Instalando Node.js 20 (limpio)..."
+
+apt remove -y nodejs libnode-dev >/dev/null 2>&1 || true
+apt purge -y nodejs libnode-dev >/dev/null 2>&1 || true
+apt autoremove -y >/dev/null 2>&1 || true
+rm -rf /usr/include/node /usr/lib/node_modules
+
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs
 
 echo "[5/9] Creando estructura..."
 mkdir -p "$BASE"/{bot,config,data,session}
