@@ -1,13 +1,13 @@
 #!/bin/bash
 # ================================================
-# TIENDA LIBRE|AR BOT - VERSIÓN COMPLETA
+# BOT WHATSAPP PERSONALIZADO - VERSIÓN ADMIN COMPLETA
 # ================================================
 # CARACTERÍSTICAS:
-# ✅ MENÚ EXACTO: 1=INFO, 2=PRECIOS, 3=COMPRAR, 4=RENOVAR, 5=APP, 6=REPRESENTANTE
-# ✅ Usuarios terminan en 'j' · Contraseña fija: 12345
-# ✅ Pregunta Android/Apple al elegir APP
-# ✅ Link APP configurable (Android) · Soporte configurable (Apple)
-# ✅ Limpieza total inicial
+# ✅ Opción 1 (INFO) visible en WhatsApp
+# ✅ Desde VPS se puede EDITAR el texto de información
+# ✅ Precios editables desde VPS
+# ✅ Número soporte y link APP editables
+# ✅ Comando 'botwa' en VPS con subcomandos
 # ================================================
 
 set -e
@@ -36,24 +36,21 @@ cat << "BANNER"
 ║        ╚═╝   ╚═╝╚══════╝╚═╝  ╚═══╝╚═════╝ ╚═╝  ╚═╝         ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
-║              🕋 BIENVENIDO A TIENDA LIBRE|AR                ║
-║                                                              ║
-║     ✅ MENÚ EXACTO: 1=INFO · 2=PRECIOS · 3=COMPRAR         ║
-║     4=RENOVAR · 5=APP · 6=REPRESENTANTE                    ║
-║     ✅ USUARIOS TERMINAN EN 'j' · CONTRASEÑA 12345         ║
-║     ✅ PREGUNTA ANDROID/APPLE · LINKS CONFIGURABLES        ║
+║              🤖 BOT ADMINISTRABLE v3.0                      ║
+║     ✅ INFO VISIBLE EN WHATSAPP · ✅ EDITABLE DESDE VPS     ║
+║     ✅ PRECIOS · SOPORTE · APP · TODO EDITABLE              ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 BANNER
 echo -e "${NC}"
 
-echo -e "${GREEN}✅ CARACTERÍSTICAS:${NC}"
-echo -e "  📱 ${CYAN}WPPConnect${NC} - API WhatsApp funcional"
-echo -e "  💰 ${GREEN}MercadoPago SDK v2.x${NC} - Integrado"
-echo -e "  🎛️  ${PURPLE}MENÚ EXACTO${NC} - 1=INFO · 2=PRECIOS · 3=COMPRAR · 4=RENOVAR · 5=APP · 6=REPRESENTANTE"
-echo -e "  🔐 ${YELLOW}Usuarios terminan en 'j' · Pass: 12345${NC}"
-echo -e "  📲 ${YELLOW}Pregunta Android/Apple al elegir APP${NC}"
-echo -e "  🧹 ${YELLOW}Limpieza total inicial${NC}"
+echo -e "${GREEN}✅ CARACTERÍSTICAS ADMIN:${NC}"
+echo -e "  📱 ${CYAN}WhatsApp:${NC} Menú completo con opción 1 (INFORMACIÓN)"
+echo -e "  🖥️  ${PURPLE}VPS:${NC} Comando 'botwa' para editar TODO:"
+echo -e "     • botwa edit info    - Editar texto de información"
+echo -e "     • botwa edit precios - Editar precios"
+echo -e "     • botwa edit soporte - Editar número soporte"
+echo -e "     • botwa edit app     - Editar link de la APP"
 echo -e "${CYAN}══════════════════════════════════════════════════════════════${NC}\n"
 
 # Verificar root
@@ -88,16 +85,20 @@ rm -rf /root/.pm2/logs/* 2>/dev/null || true
 echo -e "${GREEN}✅ Limpieza completada${NC}\n"
 
 # ================================================
-# CONFIGURACIÓN DEL BOT
+# CONFIGURACIÓN INICIAL DEL BOT
 # ================================================
-echo -e "${CYAN}${BOLD}⚙️ CONFIGURACIÓN DEL BOT${NC}"
+echo -e "${CYAN}${BOLD}⚙️ CONFIGURACIÓN INICIAL DEL BOT${NC}"
+
+# NOMBRE DEL BOT
+read -p "📝 NOMBRE PARA TU BOT (ej: TIENDA LIBRE|AR): " BOT_NAME
+BOT_NAME=${BOT_NAME:-"TIENDA LIBRE|AR"}
 
 # Link de la APP (Android)
 read -p "📲 Link de descarga para Android (APP): " APP_LINK
 APP_LINK=${APP_LINK:-"https://www.mediafire.com/file/p8kgthxbsid7xws/MAJ/DNI_AND_FIL"}
 
-# Número de soporte (WhatsApp)
-read -p "🆘 Número de WhatsApp para representante (con código país): " SUPPORT_NUMBER
+# Número de soporte
+read -p "🆘 Número de WhatsApp para soporte (con código país): " SUPPORT_NUMBER
 SUPPORT_NUMBER=${SUPPORT_NUMBER:-"543435071016"}
 
 # Precios
@@ -118,13 +119,36 @@ PRICE_50D=${PRICE_50D:-9700}
 read -p "⏰ Horas de prueba gratis (Enter para 2): " TEST_HOURS
 TEST_HOURS=${TEST_HOURS:-2}
 
-echo -e "\n${GREEN}✅ Configuración guardada:${NC}"
-echo -e "   • Contraseña fija: ${CYAN}12345${NC}"
-echo -e "   • Usuarios terminan en: ${CYAN}j${NC}"
-echo -e "   • Soporte: ${CYAN}$SUPPORT_NUMBER${NC}"
-echo -e "   • APP Android: ${CYAN}$APP_LINK${NC}"
-echo -e "   • Precios: 7d=$${PRICE_7D} · 15d=$${PRICE_15D} · 30d=$${PRICE_30D} · 50d=$${PRICE_50D}${NC}"
-echo -e "   • Horas prueba: ${CYAN}$TEST_HOURS${NC}\n"
+# TEXTO DE INFORMACIÓN (EDITABLE)
+echo -e "\n${YELLOW}📢 TEXTO DE INFORMACIÓN (lo que verán los usuarios):${NC}"
+echo "Escribe el texto que aparecerá en la opción 1 (INFO)"
+echo "Puedes usar *asteriscos* para negrita y saltos de línea"
+echo "Deja una línea en blanco y presiona Ctrl+D cuando termines:"
+echo "--------------------------------------------------------"
+
+# Leer texto multilínea
+INFO_TEXT=$(cat)
+
+# Si no se ingresó texto, usar uno por defecto
+if [ -z "$INFO_TEXT" ]; then
+    INFO_TEXT="*📢 INFORMACIÓN DEL BOT*
+
+🔐 *TODOS LOS USUARIOS:*
+• Contraseña: *12345* (fija para todos)
+• Usuario termina en *'j'*
+
+🌐 *SERVIDOR:*
+• IP: $SERVER_IP
+• Puerto: 22
+
+⏰ *PRUEBA GRATIS:*
+• $TEST_HOURS horas (opción 1 del menú)
+
+💳 *PAGOS:*
+• MercadoPago integrado"
+fi
+
+echo -e "\n${GREEN}✅ Texto de información guardado${NC}\n"
 
 # Detectar IP
 echo -e "${CYAN}🔍 Detectando IP...${NC}"
@@ -135,6 +159,15 @@ fi
 echo -e "${GREEN}✅ IP: ${CYAN}$SERVER_IP${NC}\n"
 
 # Confirmar instalación
+echo -e "${YELLOW}⚠️  RESUMEN DE CONFIGURACIÓN:${NC}"
+echo -e "   • Nombre del bot: ${CYAN}$BOT_NAME${NC}"
+echo -e "   • Contraseña fija: ${CYAN}12345${NC}"
+echo -e "   • Usuarios terminan en: ${CYAN}j${NC}"
+echo -e "   • Soporte: ${CYAN}$SUPPORT_NUMBER${NC}"
+echo -e "   • APP Android: ${CYAN}$APP_LINK${NC}"
+echo -e "   • Precios: 7d=$${PRICE_7D} · 15d=$${PRICE_15D} · 30d=$${PRICE_30D} · 50d=$${PRICE_50D}${NC}"
+echo -e "   • INFO personalizada guardada"
+
 read -p "$(echo -e "${YELLOW}¿Continuar con la instalación? (s/N): ${NC}")" -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Ss]$ ]]; then
@@ -191,10 +224,13 @@ echo -e "${GREEN}✅ Dependencias instaladas${NC}"
 # ================================================
 echo -e "\n${CYAN}📁 Creando estructura...${NC}"
 
-INSTALL_DIR="/opt/tienda-libre-bot"
-USER_HOME="/root/tienda-libre-bot"
+# Usar nombre del bot para el directorio (sin espacios)
+BOT_DIR_NAME=$(echo "$BOT_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+INSTALL_DIR="/opt/${BOT_DIR_NAME}-bot"
+USER_HOME="/root/${BOT_DIR_NAME}-bot"
 DB_FILE="$INSTALL_DIR/data/users.db"
 CONFIG_FILE="$INSTALL_DIR/config/config.json"
+INFO_FILE="$INSTALL_DIR/config/info.txt"  # Archivo separado para la info
 
 # Crear directorios
 mkdir -p "$INSTALL_DIR"/{data,config,sessions,logs,qr_codes}
@@ -203,15 +239,19 @@ mkdir -p /root/.wppconnect
 chmod -R 755 "$INSTALL_DIR"
 chmod -R 700 /root/.wppconnect
 
-# Configuración
+# Guardar texto de información en archivo separado
+echo "$INFO_TEXT" > "$INFO_FILE"
+
+# Configuración JSON
 cat > "$CONFIG_FILE" << EOF
 {
     "bot": {
-        "name": "TIENDA LIBRE|AR",
-        "version": "1.0-MENU-EXACTO",
+        "name": "$BOT_NAME",
+        "version": "3.0-ADMIN-EDITABLE",
         "server_ip": "$SERVER_IP",
         "default_password": "12345",
-        "test_hours": $TEST_HOURS
+        "test_hours": $TEST_HOURS,
+        "info_file": "$INFO_FILE"
     },
     "prices": {
         "test_hours": $TEST_HOURS,
@@ -295,17 +335,17 @@ SQL
 echo -e "${GREEN}✅ Estructura creada${NC}"
 
 # ================================================
-# CREAR BOT.JS CON MENÚ EXACTO
+# CREAR BOT.JS CON INFO EDITABLE
 # ================================================
-echo -e "\n${CYAN}🤖 Creando bot.js con menú exacto...${NC}"
+echo -e "\n${CYAN}🤖 Creando bot.js con información editable...${NC}"
 
 cd "$USER_HOME"
 
 # package.json
 cat > package.json << 'PKGEOF'
 {
-    "name": "tienda-libre-bot",
-    "version": "1.0.0",
+    "name": "bot-admin-editable",
+    "version": "3.0.0",
     "main": "bot.js",
     "dependencies": {
         "@wppconnect-team/wppconnect": "^1.24.0",
@@ -325,7 +365,7 @@ PKGEOF
 echo -e "${YELLOW}📦 Instalando dependencias...${NC}"
 npm install --silent 2>&1 | grep -v "npm WARN" || true
 
-# bot.js con MENÚ EXACTO
+# bot.js con INFO editable desde archivo externo
 cat > "bot.js" << 'BOTEOF'
 const wppconnect = require('@wppconnect-team/wppconnect');
 const qrcode = require('qrcode-terminal');
@@ -345,18 +385,46 @@ moment.locale('es');
 
 // Cargar configuración
 function loadConfig() {
-    delete require.cache[require.resolve('/opt/tienda-libre-bot/config/config.json')];
-    return require('/opt/tienda-libre-bot/config/config.json');
+    delete require.cache[require.resolve('/opt/tienda-libre-ar-bot/config/config.json')];
+    return require('/opt/tienda-libre-ar-bot/config/config.json');
 }
 
 let config = loadConfig();
-const db = new sqlite3.Database('/opt/tienda-libre-bot/data/users.db');
+const db = new sqlite3.Database('/opt/tienda-libre-ar-bot/data/users.db');
+
+// Función para leer el archivo de información (EDITABLE)
+function getInfoMessage() {
+    try {
+        const infoPath = config.bot.info_file || '/opt/tienda-libre-ar-bot/config/info.txt';
+        if (fs.existsSync(infoPath)) {
+            return fs.readFileSync(infoPath, 'utf8');
+        }
+    } catch (error) {
+        console.error('Error leyendo archivo info:', error);
+    }
+    
+    // Texto por defecto si no existe el archivo
+    return `*📢 INFORMACIÓN DEL BOT*
+
+🔐 *TODOS LOS USUARIOS:*
+• Contraseña: *12345* (fija para todos)
+• Usuario termina en *'j'*
+
+🌐 *SERVIDOR:*
+• IP: ${config.bot.server_ip}
+• Puerto: 22
+
+⏰ *PRUEBA GRATIS:*
+• ${config.bot.test_hours} horas
+
+💳 *PAGOS:*
+• MercadoPago integrado`;
+}
 
 console.log(chalk.cyan.bold('\n╔══════════════════════════════════════════════════════════════╗'));
-console.log(chalk.cyan.bold('║              🕋 TIENDA LIBRE|AR BOT v1.0                      ║'));
-console.log(chalk.cyan.bold('║     ✅ MENÚ EXACTO: 1=INFO · 2=PRECIOS · 3=COMPRAR            ║'));
-console.log(chalk.cyan.bold('║     4=RENOVAR · 5=APP · 6=REPRESENTANTE                       ║'));
-console.log(chalk.cyan.bold('║     ✅ USUARIOS TERMINAN EN j · CONTRASEÑA 12345              ║'));
+console.log(chalk.cyan.bold(`║           ${config.bot.name.padEnd(42)}║`));
+console.log(chalk.cyan.bold('║     ✅ INFO EDITABLE DESDE VPS · ✅ MENÚ COMPLETO           ║'));
+console.log(chalk.cyan.bold('║     ✅ USUARIOS TERMINAN EN j · CONTRASEÑA 12345            ║'));
 console.log(chalk.cyan.bold('╚══════════════════════════════════════════════════════════════╝\n'));
 
 // ==============================================
@@ -383,7 +451,7 @@ function initMercadoPago() {
             mpEnabled = false;
         }
     } else {
-        console.log(chalk.yellow('⚠️ MercadoPago NO configurado (usa sshbot-control mercadopago)'));
+        console.log(chalk.yellow('⚠️ MercadoPago NO configurado (usa botwa mercadopago)'));
     }
 }
 initMercadoPago();
@@ -408,7 +476,7 @@ function setUserState(phone, state, data = null) {
 }
 
 // ==============================================
-// FUNCIONES SSH - usuarios terminan en 'j' y pass 12345
+// FUNCIONES SSH
 // ==============================================
 function generateSSHUsername(phone) {
     const timestamp = Date.now().toString().slice(-6);
@@ -458,7 +526,7 @@ async function createMercadoPagoPayment(phone, planName, days, amount) {
         const paymentId = `MP-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const preferenceData = {
             items: [{
-                title: `TIENDA LIBRE|AR - ${planName}`,
+                title: `${config.bot.name} - ${planName}`,
                 description: `Plan ${days} días`,
                 quantity: 1,
                 currency_id: 'ARS',
@@ -481,10 +549,10 @@ async function createMercadoPagoPayment(phone, planName, days, amount) {
 }
 
 // ==============================================
-// MENÚ EXACTO (según lo solicitado)
+// MENSAJES DEL BOT
 // ==============================================
 function getMainMenuMessage() {
-    return `🕋 BIENVENIDO A TIENDA LIBRE|AR
+    return `🕋 BIENVENIDO A ${config.bot.name}
 
 1 ⁃📢 INFORMACIÓN
 2 ⁃🏷️ PRECIOS
@@ -494,28 +562,6 @@ function getMainMenuMessage() {
 6 ⁃👥 HABLAR CON UN REPRESENTANTE
 
 👉 Escribe una opción`;
-}
-
-function getInfoMessage() {
-    return `*📢 INFORMACIÓN*
-
-🤖 *TIENDA LIBRE|AR BOT*
-
-🔐 *TODOS LOS USUARIOS:*
-• Contraseña: *12345* (fija para todos)
-• Usuario termina en *'j'*
-
-🌐 *SERVIDOR:*
-• IP: ${config.bot.server_ip}
-• Puerto: 22
-
-⏰ *PRUEBA GRATIS:*
-• ${config.bot.test_hours} horas (opción 1 del menú)
-
-💳 *PAGOS:*
-• MercadoPago integrado
-
-_Escribe *menu* para volver al inicio_`;
 }
 
 function getPricesMessage() {
@@ -623,8 +669,9 @@ async function handleMessage(message) {
 // ==============================================
 async function handleMainMenu(phone, text, from) {
     switch (text) {
-        case '1': // INFORMACIÓN
-            await client.sendText(from, getInfoMessage());
+        case '1': // INFORMACIÓN (EDITABLE)
+            const infoMessage = getInfoMessage();
+            await client.sendText(from, infoMessage + '\n\n_Escribe *menu* para volver_');
             await setUserState(phone, 'main_menu');
             break;
             
@@ -874,12 +921,6 @@ _Escribe *menu* para volver_`);
 }
 
 // ==============================================
-// PRUEBA GRATIS (se activa al comprar? o es opción extra?)
-// ==============================================
-// Nota: El menú no incluye prueba gratis, pero si el usuario es nuevo,
-// podemos ofrecerla automáticamente o mantenerla como comando especial
-
-// ==============================================
 // CRON JOBS
 // ==============================================
 function setupCleanupCron() {
@@ -909,7 +950,7 @@ async function startBot() {
     iniciando = true;
     
     try {
-        console.log(chalk.cyan('🚀 Iniciando TIENDA LIBRE|AR BOT...'));
+        console.log(chalk.cyan(`🚀 Iniciando ${config.bot.name}...`));
         
         const chromePath = config.paths.chromium;
         if (!fs.existsSync(chromePath)) {
@@ -920,7 +961,7 @@ async function startBot() {
         setupCleanupCron();
         
         client = await wppconnect.create({
-            session: 'tienda-libre-bot',
+            session: 'bot-editable',
             folderNameToken: config.paths.sessions,
             puppeteerOptions: {
                 executablePath: chromePath,
@@ -937,10 +978,10 @@ async function startBot() {
                 console.log(asciiQR);
                 console.log(chalk.cyan('\n1. Abre WhatsApp → Menú → WhatsApp Web'));
                 console.log(chalk.cyan('2. Escanea este código QR'));
-                console.log(chalk.cyan('3. El bot mostrará "🕋 BIENVENIDO A TIENDA LIBRE|AR"\n'));
+                console.log(chalk.cyan('3. El bot mostrará el menú completo\n'));
                 
                 // Guardar QR
-                const qrImagePath = `/opt/tienda-libre-bot/qr_codes/qr-${Date.now()}.png`;
+                const qrImagePath = `/opt/tienda-libre-ar-bot/qr_codes/qr-${Date.now()}.png`;
                 QRCode.toFile(qrImagePath, base64Qr, { width: 300 }, (err) => {
                     if (!err) console.log(chalk.green(`✅ QR guardado en: ${qrImagePath}`));
                 });
@@ -958,7 +999,7 @@ async function startBot() {
             console.log(chalk.blue(`🔁 Estado: ${states[state] || state}`));
             
             if (state === 'CONNECTED') {
-                console.log(chalk.green('\n✅ TIENDA LIBRE|AR BOT LISTO'));
+                console.log(chalk.green(`\n✅ ${config.bot.name} LISTO`));
                 console.log(chalk.cyan('💬 El bot ya puede recibir mensajes\n'));
             }
         });
@@ -973,7 +1014,7 @@ async function startBot() {
             }
         });
         
-        console.log(chalk.green.bold('\n✅ BOT INICIADO CORRECTAMENTE!'));
+        console.log(chalk.green.bold(`\n✅ ${config.bot.name} INICIADO CORRECTAMENTE!`));
         iniciando = false;
         
     } catch (error) {
@@ -986,63 +1027,153 @@ async function startBot() {
 startBot();
 BOTEOF
 
-echo -e "${GREEN}✅ Bot.js creado con el menú exacto solicitado${NC}"
+echo -e "${GREEN}✅ Bot.js creado con información editable${NC}"
 
 # ================================================
-# SCRIPT DE CONTROL
+# SCRIPT DE CONTROL CON EDITORES
 # ================================================
-echo -e "\n${CYAN}${BOLD}⚙️ Creando script de control...${NC}"
-cat > "/usr/local/bin/sshbot-control" << 'CONTROLEOF'
+echo -e "\n${CYAN}${BOLD}⚙️ Creando script de control 'botwa'...${NC}"
+cat > "/usr/local/bin/botwa" << 'CONTROLEOF'
 #!/bin/bash
 BOLD='\033[1m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; CYAN='\033[0;36m'; NC='\033[0m'
 
+BOT_DIR="/opt/tienda-libre-ar-bot"
+CONFIG_FILE="$BOT_DIR/config/config.json"
+INFO_FILE="$BOT_DIR/config/info.txt"
+
 case "$1" in
-    start)
-        echo -e "${GREEN}▶️ Iniciando TIENDA LIBRE|AR BOT...${NC}"
-        cd /root/tienda-libre-bot
-        pm2 start bot.js --name tienda-libre-bot --time
-        pm2 save
+    menu|"")
+        echo -e "${CYAN}${BOLD}===== 🤖 BOT ADMINISTRABLE =====${NC}"
+        echo -e "${GREEN}Comandos disponibles:${NC}"
+        echo -e "  ${YELLOW}botwa menu${NC}       - Mostrar este menú"
+        echo -e "  ${YELLOW}botwa edit info${NC}   - Editar texto de INFORMACIÓN (opción 1)"
+        echo -e "  ${YELLOW}botwa edit precios${NC} - Editar precios"
+        echo -e "  ${YELLOW}botwa edit soporte${NC} - Editar número de soporte"
+        echo -e "  ${YELLOW}botwa edit app${NC}     - Editar link de la APP"
+        echo -e "  ${YELLOW}botwa logs${NC}        - Ver logs/QR"
+        echo -e "  ${YELLOW}botwa restart${NC}     - Reiniciar bot"
+        echo -e "  ${YELLOW}botwa stop${NC}        - Detener bot"
+        echo -e "  ${YELLOW}botwa start${NC}       - Iniciar bot"
+        echo -e "  ${YELLOW}botwa mercadopago${NC} - Configurar MP"
+        echo -e "  ${YELLOW}botwa show info${NC}    - Ver texto actual de información"
         ;;
-    stop)
-        echo -e "${YELLOW}⏹️ Deteniendo bot...${NC}"
-        pm2 stop tienda-libre-bot
+        
+    edit)
+        case "$2" in
+            info)
+                echo -e "${CYAN}📝 Editando texto de INFORMACIÓN (opción 1 del menú)${NC}"
+                echo -e "${YELLOW}Texto actual:${NC}"
+                echo "--------------------------------------------------------"
+                cat "$INFO_FILE"
+                echo "--------------------------------------------------------"
+                echo -e "${GREEN}Escribe el nuevo texto (Ctrl+D para guardar):${NC}"
+                cat > "$INFO_FILE"
+                echo -e "${GREEN}✅ Texto de información actualizado${NC}"
+                echo -e "${YELLOW}Reinicia el bot para aplicar: botwa restart${NC}"
+                ;;
+                
+            precios)
+                echo -e "${CYAN}💰 Editando precios${NC}"
+                source <(jq -r '.prices | to_entries[] | "\(.key)=\(.value)"' "$CONFIG_FILE")
+                echo -e "${YELLOW}Precio actual 7 días: $price_7d${NC}"
+                read -p "Nuevo precio 7 días: " new_7d
+                echo -e "${YELLOW}Precio actual 15 días: $price_15d${NC}"
+                read -p "Nuevo precio 15 días: " new_15d
+                echo -e "${YELLOW}Precio actual 30 días: $price_30d${NC}"
+                read -p "Nuevo precio 30 días: " new_30d
+                echo -e "${YELLOW}Precio actual 50 días: $price_50d${NC}"
+                read -p "Nuevo precio 50 días: " new_50d
+                
+                jq --arg p7 "${new_7d:-$price_7d}" \
+                   --arg p15 "${new_15d:-$price_15d}" \
+                   --arg p30 "${new_30d:-$price_30d}" \
+                   --arg p50 "${new_50d:-$price_50d}" \
+                   '.prices.price_7d = ($p7|tonumber) | 
+                    .prices.price_15d = ($p15|tonumber) | 
+                    .prices.price_30d = ($p30|tonumber) | 
+                    .prices.price_50d = ($p50|tonumber)' \
+                   "$CONFIG_FILE" > /tmp/config.tmp && mv /tmp/config.tmp "$CONFIG_FILE"
+                
+                echo -e "${GREEN}✅ Precios actualizados${NC}"
+                echo -e "${YELLOW}Reinicia el bot: botwa restart${NC}"
+                ;;
+                
+            soporte)
+                echo -e "${CYAN}🆘 Editando número de soporte${NC}"
+                CURRENT_SUPPORT=$(jq -r '.links.support' "$CONFIG_FILE" | sed 's|https://wa.me/||')
+                echo -e "${YELLOW}Número actual: $CURRENT_SUPPORT${NC}"
+                read -p "Nuevo número de WhatsApp (con código país): " new_support
+                if [ -n "$new_support" ]; then
+                    jq --arg s "https://wa.me/$new_support" '.links.support = $s' "$CONFIG_FILE" > /tmp/config.tmp && mv /tmp/config.tmp "$CONFIG_FILE"
+                    echo -e "${GREEN}✅ Número de soporte actualizado${NC}"
+                    echo -e "${YELLOW}Reinicia el bot: botwa restart${NC}"
+                fi
+                ;;
+                
+            app)
+                echo -e "${CYAN}📲 Editando link de la APP${NC}"
+                CURRENT_APP=$(jq -r '.links.app_android' "$CONFIG_FILE")
+                echo -e "${YELLOW}Link actual: $CURRENT_APP${NC}"
+                read -p "Nuevo link de descarga Android: " new_app
+                if [ -n "$new_app" ]; then
+                    jq --arg a "$new_app" '.links.app_android = $a' "$CONFIG_FILE" > /tmp/config.tmp && mv /tmp/config.tmp "$CONFIG_FILE"
+                    echo -e "${GREEN}✅ Link de APP actualizado${NC}"
+                    echo -e "${YELLOW}Reinicia el bot: botwa restart${NC}"
+                fi
+                ;;
+                
+            *)
+                echo -e "${RED}❌ Opción no válida. Usa: botwa edit {info|precios|soporte|app}${NC}"
+                ;;
+        esac
         ;;
+        
+    show)
+        if [ "$2" == "info" ]; then
+            echo -e "${CYAN}📢 TEXTO DE INFORMACIÓN ACTUAL:${NC}"
+            echo "--------------------------------------------------------"
+            cat "$INFO_FILE"
+            echo "--------------------------------------------------------"
+        else
+            jq '.' "$CONFIG_FILE"
+        fi
+        ;;
+        
+    logs)
+        pm2 logs tienda-libre-ar-bot --lines 50
+        ;;
+        
     restart)
         echo -e "${CYAN}🔄 Reiniciando bot...${NC}"
-        pm2 restart tienda-libre-bot
+        pm2 restart tienda-libre-ar-bot
         ;;
-    logs)
-        pm2 logs tienda-libre-bot --lines 50
+        
+    stop)
+        echo -e "${YELLOW}⏹️ Deteniendo bot...${NC}"
+        pm2 stop tienda-libre-ar-bot
         ;;
-    clean)
-        echo -e "${YELLOW}🧹 Limpiando sesión...${NC}"
-        pm2 stop tienda-libre-bot 2>/dev/null
-        rm -rf /root/.wppconnect/tienda-libre-bot/*
-        echo -e "${GREEN}✅ Sesión limpiada. Reinicia con: sshbot-control restart${NC}"
+        
+    start)
+        echo -e "${GREEN}▶️ Iniciando bot...${NC}"
+        cd /root/tienda-libre-ar-bot
+        pm2 start bot.js --name tienda-libre-ar-bot --time
+        pm2 save
         ;;
-    config)
-        nano /opt/tienda-libre-bot/config/config.json
-        ;;
+        
     mercadopago)
         echo -e "${CYAN}💰 Configurar MercadoPago:${NC}"
         read -p "Access Token: " token
-        jq --arg t "$token" '.mercadopago.access_token = $t | .mercadopago.enabled = true' /opt/tienda-libre-bot/config/config.json > /tmp/config.tmp && mv /tmp/config.tmp /opt/tienda-libre-bot/config/config.json
-        echo -e "${GREEN}✅ Token guardado. Reinicia: sshbot-control restart${NC}"
+        jq --arg t "$token" '.mercadopago.access_token = $t | .mercadopago.enabled = true' "$CONFIG_FILE" > /tmp/config.tmp && mv /tmp/config.tmp "$CONFIG_FILE"
+        echo -e "${GREEN}✅ Token guardado. Reinicia: botwa restart${NC}"
         ;;
+        
     *)
-        echo -e "${CYAN}${BOLD}TIENDA LIBRE|AR BOT - COMANDOS:${NC}"
-        echo -e "  ${GREEN}start${NC}     - Iniciar bot"
-        echo -e "  ${GREEN}stop${NC}      - Detener bot"
-        echo -e "  ${GREEN}restart${NC}   - Reiniciar bot"
-        echo -e "  ${GREEN}logs${NC}      - Ver logs/QR"
-        echo -e "  ${GREEN}clean${NC}     - Limpiar sesión"
-        echo -e "  ${GREEN}config${NC}    - Editar configuración"
-        echo -e "  ${GREEN}mercadopago${NC} - Configurar MP"
+        echo -e "${RED}❌ Comando no reconocido. Usa 'botwa menu' para ver opciones.${NC}"
         ;;
 esac
 CONTROLEOF
 
-chmod +x /usr/local/bin/sshbot-control
+chmod +x /usr/local/bin/botwa
 
 # ================================================
 # CONFIGURAR PM2
@@ -1053,9 +1184,9 @@ pm2 save
 # ================================================
 # INICIAR BOT
 # ================================================
-echo -e "\n${CYAN}${BOLD}🚀 Iniciando TIENDA LIBRE|AR BOT...${NC}"
+echo -e "\n${CYAN}${BOLD}🚀 Iniciando bot...${NC}"
 cd "$USER_HOME"
-pm2 start bot.js --name tienda-libre-bot --time
+pm2 start bot.js --name tienda-libre-ar-bot --time
 pm2 save
 
 echo -e "${GREEN}"
@@ -1067,25 +1198,33 @@ SUCCESS
 echo -e "${NC}"
 
 echo -e "${YELLOW}📋 CONFIGURACIÓN GUARDADA:${NC}"
+echo -e "   • Nombre del bot: ${CYAN}$BOT_NAME${NC}"
 echo -e "   • Contraseña fija: ${CYAN}12345${NC}"
 echo -e "   • Usuarios terminan en: ${CYAN}j${NC}"
 echo -e "   • Soporte: ${CYAN}$SUPPORT_NUMBER${NC}"
 echo -e "   • APP Android: ${CYAN}$APP_LINK${NC}"
 echo -e "   • Precios: 7d=$${PRICE_7D} · 15d=$${PRICE_15D} · 30d=$${PRICE_30D} · 50d=$${PRICE_50D}${NC}"
-echo -e "   • IP Servidor: ${CYAN}$SERVER_IP${NC}"
 
-echo -e "\n${CYAN}📱 VER QR AHORA:${NC}"
-echo -e "  ${GREEN}sshbot-control logs${NC}"
+echo -e "\n${CYAN}🖥️  COMANDOS DESDE VPS (USA 'botwa'):${NC}"
+echo -e "  ${GREEN}botwa menu${NC}           - Ver todos los comandos"
+echo -e "  ${GREEN}botwa edit info${NC}      - Editar texto de INFORMACIÓN"
+echo -e "  ${GREEN}botwa edit precios${NC}   - Editar precios"
+echo -e "  ${GREEN}botwa edit soporte${NC}   - Editar número soporte"
+echo -e "  ${GREEN}botwa edit app${NC}       - Editar link APP"
+echo -e "  ${GREEN}botwa logs${NC}           - Ver QR y logs"
 
-echo -e "\n${PURPLE}⚡ COMANDOS ÚTILES:${NC}"
-echo -e "  ${GREEN}sshbot-control logs${NC}   - Ver QR"
-echo -e "  ${GREEN}sshbot-control restart${NC} - Reiniciar"
-echo -e "  ${GREEN}sshbot-control mercadopago${NC} - Configurar pagos"
+echo -e "\n${CYAN}📱 EN WHATSAPP (MENÚ COMPLETO):${NC}"
+echo -e "  • Opción 1: INFORMACIÓN (texto editable desde VPS)"
+echo -e "  • Opción 2: PRECIOS (editables desde VPS)"
+echo -e "  • Opción 3: COMPRAR USUARIO"
+echo -e "  • Opción 4: RENOVAR USUARIO"
+echo -e "  • Opción 5: DESCARGAR APP (pregunta Android/Apple)"
+echo -e "  • Opción 6: HABLAR CON REPRESENTANTE"
 
 echo -e "\n${YELLOW}📢 MOSTRANDO LOGS (ESPERA EL QR)...${NC}"
 sleep 2
-pm2 logs tienda-libre-bot --lines 15 --nostream
+pm2 logs tienda-libre-ar-bot --lines 15 --nostream
 
 echo -e "\n${CYAN}══════════════════════════════════════════════════════════════${NC}"
-echo -e "${BOLD}✅ TIENDA LIBRE|AR BOT - VERSIÓN CON MENÚ EXACTO${NC}"
+echo -e "${BOLD}✅ BOT ADMINISTRABLE v3.0 - INFO EDITABLE DESDE VPS${NC}"
 echo -e "${CYAN}══════════════════════════════════════════════════════════════${NC}"
