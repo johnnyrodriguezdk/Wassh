@@ -1,13 +1,12 @@
 #!/bin/bash
 # ================================================
-# BOT WHATSAPP PERSONALIZADO - VERSIÓN ADMIN COMPLETA
+# BOT WHATSAPP - INSTALACIÓN ÚNICA EN /sshbot
 # ================================================
 # CARACTERÍSTICAS:
-# ✅ Opción 1 (INFO) visible en WhatsApp
-# ✅ Desde VPS se puede EDITAR el texto de información
-# ✅ Precios editables desde VPS
-# ✅ Número soporte y link APP editables
-# ✅ Comando 'botwa' en VPS con subcomandos
+# ✅ SIEMPRE instala en /sshbot (borra y sobrescribe)
+# ✅ Una sola carpeta para TODAS las versiones
+# ✅ Limpieza total antes de instalar
+# ✅ Menú completo con INFO editable
 # ================================================
 
 set -e
@@ -36,21 +35,19 @@ cat << "BANNER"
 ║        ╚═╝   ╚═╝╚══════╝╚═╝  ╚═══╝╚═════╝ ╚═╝  ╚═╝         ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
-║              🤖 BOT ADMINISTRABLE v3.0                      ║
-║     ✅ INFO VISIBLE EN WHATSAPP · ✅ EDITABLE DESDE VPS     ║
-║     ✅ PRECIOS · SOPORTE · APP · TODO EDITABLE              ║
+║           🤖 BOT WHATSAPP - INSTALACIÓN ÚNICA               ║
+║     ✅ SIEMPRE EN /sshbot · ✅ SOBRESCRIBE ANTERIOR         ║
+║     ✅ UNA SOLA CARPETA PARA TODAS LAS VERSIONES            ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 BANNER
 echo -e "${NC}"
 
-echo -e "${GREEN}✅ CARACTERÍSTICAS ADMIN:${NC}"
-echo -e "  📱 ${CYAN}WhatsApp:${NC} Menú completo con opción 1 (INFORMACIÓN)"
-echo -e "  🖥️  ${PURPLE}VPS:${NC} Comando 'botwa' para editar TODO:"
-echo -e "     • botwa edit info    - Editar texto de información"
-echo -e "     • botwa edit precios - Editar precios"
-echo -e "     • botwa edit soporte - Editar número soporte"
-echo -e "     • botwa edit app     - Editar link de la APP"
+echo -e "${GREEN}✅ CARACTERÍSTICAS:${NC}"
+echo -e "  📁 ${CYAN}Carpeta única:${NC} /sshbot (siempre ahí)"
+echo -e "  🗑️  ${RED}Limpieza total:${NC} Borra instalación anterior"
+echo -e "  📱 ${PURPLE}Menú completo:${NC} 1=INFO · 2=PRECIOS · 3=COMPRAR · 4=RENOVAR · 5=APP · 6=SOPORTE"
+echo -e "  🔐 ${YELLOW}Usuarios terminan en 'j' · Pass: 12345${NC}"
 echo -e "${CYAN}══════════════════════════════════════════════════════════════${NC}\n"
 
 # Verificar root
@@ -61,33 +58,72 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # ================================================
-# LIMPIEZA TOTAL INICIAL
+# CARPETA ÚNICA: /sshbot
 # ================================================
-echo -e "\n${CYAN}${BOLD}🧹 EJECUTANDO LIMPIEZA TOTAL...${NC}"
+INSTALL_DIR="/sshbot"
+USER_HOME="$INSTALL_DIR"
+DB_FILE="$INSTALL_DIR/data/users.db"
+CONFIG_FILE="$INSTALL_DIR/config/config.json"
+INFO_FILE="$INSTALL_DIR/config/info.txt"
 
-# Matar procesos
-echo -e "${YELLOW}Deteniendo procesos...${NC}"
+# ================================================
+# LIMPIEZA TOTAL - BORRAR TODO LO ANTERIOR
+# ================================================
+echo -e "\n${CYAN}${BOLD}🧹 LIMPIEZA TOTAL - BORRANDO INSTALACIÓN ANTERIOR...${NC}"
+
+# Detener procesos
+echo -e "${YELLOW}Deteniendo procesos del bot...${NC}"
+pm2 delete ssh-bot 2>/dev/null || true
+pm2 delete sshbot 2>/dev/null || true
+pm2 delete tienda-libre-ar-bot 2>/dev/null || true
+pm2 delete bot-personalizado 2>/dev/null || true
 pm2 kill 2>/dev/null || true
+
+# Matar procesos relacionados
 pkill -f node 2>/dev/null || true
 pkill -f chrome 2>/dev/null || true
 pkill -f chromium 2>/dev/null || true
 
-# Eliminar instalaciones anteriores
-echo -e "${YELLOW}Eliminando instalaciones anteriores...${NC}"
-rm -rf /opt/ssh-bot /root/ssh-bot 2>/dev/null || true
-rm -rf /opt/sshbot-pro /root/sshbot-pro 2>/dev/null || true
-rm -rf /root/ssh-bot-whatsapp /root/iniciar-bot.sh 2>/dev/null || true
-rm -rf /root/SSH-BOT /root/ssh-bot-pro 2>/dev/null || true
+# ELIMINAR TODAS LAS CARPETAS POSIBLES DE INSTALACIONES ANTERIORES
+echo -e "${YELLOW}Eliminando todas las carpetas de instalaciones anteriores...${NC}"
+rm -rf /sshbot 2>/dev/null || true
+rm -rf /opt/ssh-bot 2>/dev/null || true
+rm -rf /root/ssh-bot 2>/dev/null || true
+rm -rf /opt/sshbot-pro 2>/dev/null || true
+rm -rf /root/sshbot-pro 2>/dev/null || true
+rm -rf /root/ssh-bot-whatsapp 2>/dev/null || true
+rm -rf /root/servertuc* 2>/dev/null || true
+rm -rf /root/tienda* 2>/dev/null || true
+rm -rf /root/bot* 2>/dev/null || true
+
+# Limpiar sesiones de WhatsApp
+echo -e "${YELLOW}Limpiando sesiones de WhatsApp...${NC}"
 rm -rf /root/.wppconnect 2>/dev/null || true
 rm -rf /root/.wwebjs_auth 2>/dev/null || true
+rm -rf /root/.wwebjs_cache 2>/dev/null || true
+
+# Limpiar logs
 rm -rf /root/.pm2/logs/* 2>/dev/null || true
 
-echo -e "${GREEN}✅ Limpieza completada${NC}\n"
+echo -e "${GREEN}✅ Limpieza completada. Todo listo para instalar en /sshbot${NC}\n"
 
 # ================================================
-# CONFIGURACIÓN INICIAL DEL BOT
+# CREAR ESTRUCTURA EN /sshbot
 # ================================================
-echo -e "${CYAN}${BOLD}⚙️ CONFIGURACIÓN INICIAL DEL BOT${NC}"
+echo -e "${CYAN}${BOLD}📁 CREANDO ESTRUCTURA EN /sshbot...${NC}"
+
+# Crear directorios
+mkdir -p "$INSTALL_DIR"/{data,config,sessions,logs,qr_codes}
+mkdir -p /root/.wppconnect
+chmod -R 755 "$INSTALL_DIR"
+chmod -R 700 /root/.wppconnect
+
+echo -e "${GREEN}✅ Estructura creada en /sshbot${NC}\n"
+
+# ================================================
+# CONFIGURACIÓN DEL BOT
+# ================================================
+echo -e "${CYAN}${BOLD}⚙️ CONFIGURACIÓN DEL BOT${NC}"
 
 # NOMBRE DEL BOT
 read -p "📝 NOMBRE PARA TU BOT (ej: TIENDA LIBRE|AR): " BOT_NAME
@@ -119,10 +155,10 @@ PRICE_50D=${PRICE_50D:-9700}
 read -p "⏰ Horas de prueba gratis (Enter para 2): " TEST_HOURS
 TEST_HOURS=${TEST_HOURS:-2}
 
-# TEXTO DE INFORMACIÓN (EDITABLE)
+# TEXTO DE INFORMACIÓN
 echo -e "\n${YELLOW}📢 TEXTO DE INFORMACIÓN (lo que verán los usuarios):${NC}"
 echo "Escribe el texto que aparecerá en la opción 1 (INFO)"
-echo "Puedes usar *asteriscos* para negrita y saltos de línea"
+echo "Puedes usar *asteriscos* para negrita"
 echo "Deja una línea en blanco y presiona Ctrl+D cuando termines:"
 echo "--------------------------------------------------------"
 
@@ -142,16 +178,14 @@ if [ -z "$INFO_TEXT" ]; then
 • Puerto: 22
 
 ⏰ *PRUEBA GRATIS:*
-• $TEST_HOURS horas (opción 1 del menú)
+• $TEST_HOURS horas
 
 💳 *PAGOS:*
 • MercadoPago integrado"
 fi
 
-echo -e "\n${GREEN}✅ Texto de información guardado${NC}\n"
-
 # Detectar IP
-echo -e "${CYAN}🔍 Detectando IP...${NC}"
+echo -e "\n${CYAN}🔍 Detectando IP...${NC}"
 SERVER_IP=$(curl -4 -s --max-time 10 ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}' || echo "127.0.0.1")
 if [[ -z "$SERVER_IP" || "$SERVER_IP" == "127.0.0.1" ]]; then
     read -p "📝 Ingresa la IP del servidor manualmente: " SERVER_IP
@@ -160,13 +194,13 @@ echo -e "${GREEN}✅ IP: ${CYAN}$SERVER_IP${NC}\n"
 
 # Confirmar instalación
 echo -e "${YELLOW}⚠️  RESUMEN DE CONFIGURACIÓN:${NC}"
+echo -e "   • Carpeta única: ${CYAN}/sshbot${NC}"
 echo -e "   • Nombre del bot: ${CYAN}$BOT_NAME${NC}"
 echo -e "   • Contraseña fija: ${CYAN}12345${NC}"
 echo -e "   • Usuarios terminan en: ${CYAN}j${NC}"
 echo -e "   • Soporte: ${CYAN}$SUPPORT_NUMBER${NC}"
 echo -e "   • APP Android: ${CYAN}$APP_LINK${NC}"
 echo -e "   • Precios: 7d=$${PRICE_7D} · 15d=$${PRICE_15D} · 30d=$${PRICE_30D} · 50d=$${PRICE_50D}${NC}"
-echo -e "   • INFO personalizada guardada"
 
 read -p "$(echo -e "${YELLOW}¿Continuar con la instalación? (s/N): ${NC}")" -n 1 -r
 echo
@@ -176,9 +210,56 @@ if [[ ! $REPLY =~ ^[Ss]$ ]]; then
 fi
 
 # ================================================
+# GUARDAR CONFIGURACIÓN
+# ================================================
+echo -e "\n${CYAN}💾 Guardando configuración...${NC}"
+
+# Guardar texto de información
+echo "$INFO_TEXT" > "$INFO_FILE"
+
+# Configuración JSON
+cat > "$CONFIG_FILE" << EOF
+{
+    "bot": {
+        "name": "$BOT_NAME",
+        "version": "3.0-UNICA-CARPETA",
+        "server_ip": "$SERVER_IP",
+        "default_password": "12345",
+        "test_hours": $TEST_HOURS,
+        "info_file": "$INFO_FILE"
+    },
+    "prices": {
+        "test_hours": $TEST_HOURS,
+        "price_7d": $PRICE_7D,
+        "price_15d": $PRICE_15D,
+        "price_30d": $PRICE_30D,
+        "price_50d": $PRICE_50D,
+        "currency": "ARS"
+    },
+    "mercadopago": {
+        "access_token": "",
+        "enabled": false,
+        "public_key": ""
+    },
+    "links": {
+        "app_android": "$APP_LINK",
+        "support": "https://wa.me/$SUPPORT_NUMBER"
+    },
+    "paths": {
+        "database": "$DB_FILE",
+        "chromium": "/usr/bin/google-chrome",
+        "qr_codes": "$INSTALL_DIR/qr_codes",
+        "sessions": "/root/.wppconnect"
+    }
+}
+EOF
+
+echo -e "${GREEN}✅ Configuración guardada en /sshbot/config/${NC}"
+
+# ================================================
 # INSTALAR DEPENDENCIAS
 # ================================================
-echo -e "\n${CYAN}📦 Instalando dependencias...${NC}"
+echo -e "\n${CYAN}📦 Instalando dependencias del sistema...${NC}"
 
 apt-get update -y
 apt-get upgrade -y
@@ -220,66 +301,10 @@ pm2 update
 echo -e "${GREEN}✅ Dependencias instaladas${NC}"
 
 # ================================================
-# PREPARAR ESTRUCTURA
+# CREAR BASE DE DATOS
 # ================================================
-echo -e "\n${CYAN}📁 Creando estructura...${NC}"
+echo -e "\n${CYAN}🗄️ Creando base de datos...${NC}"
 
-# Usar nombre del bot para el directorio (sin espacios)
-BOT_DIR_NAME=$(echo "$BOT_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
-INSTALL_DIR="/opt/${BOT_DIR_NAME}-bot"
-USER_HOME="/root/${BOT_DIR_NAME}-bot"
-DB_FILE="$INSTALL_DIR/data/users.db"
-CONFIG_FILE="$INSTALL_DIR/config/config.json"
-INFO_FILE="$INSTALL_DIR/config/info.txt"  # Archivo separado para la info
-
-# Crear directorios
-mkdir -p "$INSTALL_DIR"/{data,config,sessions,logs,qr_codes}
-mkdir -p "$USER_HOME"
-mkdir -p /root/.wppconnect
-chmod -R 755 "$INSTALL_DIR"
-chmod -R 700 /root/.wppconnect
-
-# Guardar texto de información en archivo separado
-echo "$INFO_TEXT" > "$INFO_FILE"
-
-# Configuración JSON
-cat > "$CONFIG_FILE" << EOF
-{
-    "bot": {
-        "name": "$BOT_NAME",
-        "version": "3.0-ADMIN-EDITABLE",
-        "server_ip": "$SERVER_IP",
-        "default_password": "12345",
-        "test_hours": $TEST_HOURS,
-        "info_file": "$INFO_FILE"
-    },
-    "prices": {
-        "test_hours": $TEST_HOURS,
-        "price_7d": $PRICE_7D,
-        "price_15d": $PRICE_15D,
-        "price_30d": $PRICE_30D,
-        "price_50d": $PRICE_50D,
-        "currency": "ARS"
-    },
-    "mercadopago": {
-        "access_token": "",
-        "enabled": false,
-        "public_key": ""
-    },
-    "links": {
-        "app_android": "$APP_LINK",
-        "support": "https://wa.me/$SUPPORT_NUMBER"
-    },
-    "paths": {
-        "database": "$DB_FILE",
-        "chromium": "/usr/bin/google-chrome",
-        "qr_codes": "$INSTALL_DIR/qr_codes",
-        "sessions": "/root/.wppconnect"
-    }
-}
-EOF
-
-# Crear base de datos
 sqlite3 "$DB_FILE" << 'SQL'
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -332,20 +357,19 @@ CREATE INDEX idx_payments_status ON payments(status);
 CREATE INDEX idx_payments_preference ON payments(preference_id);
 SQL
 
-echo -e "${GREEN}✅ Estructura creada${NC}"
+echo -e "${GREEN}✅ Base de datos creada en /sshbot/data/${NC}"
 
 # ================================================
-# CREAR BOT.JS CON INFO EDITABLE
+# CREAR PACKAGE.JSON
 # ================================================
-echo -e "\n${CYAN}🤖 Creando bot.js con información editable...${NC}"
+echo -e "\n${CYAN}📦 Creando package.json...${NC}"
 
-cd "$USER_HOME"
+cd "$INSTALL_DIR"
 
-# package.json
 cat > package.json << 'PKGEOF'
 {
-    "name": "bot-admin-editable",
-    "version": "3.0.0",
+    "name": "sshbot-unico",
+    "version": "1.0.0",
     "main": "bot.js",
     "dependencies": {
         "@wppconnect-team/wppconnect": "^1.24.0",
@@ -362,10 +386,16 @@ cat > package.json << 'PKGEOF'
 }
 PKGEOF
 
-echo -e "${YELLOW}📦 Instalando dependencias...${NC}"
+echo -e "${YELLOW}📦 Instalando dependencias de Node.js (esto puede tomar varios minutos)...${NC}"
 npm install --silent 2>&1 | grep -v "npm WARN" || true
 
-# bot.js con INFO editable desde archivo externo
+echo -e "${GREEN}✅ Dependencias instaladas en /sshbot/node_modules/${NC}"
+
+# ================================================
+# CREAR BOT.JS (VERSIÓN CORREGIDA CON RUTA /sshbot)
+# ================================================
+echo -e "\n${CYAN}🤖 Creando bot.js...${NC}"
+
 cat > "bot.js" << 'BOTEOF'
 const wppconnect = require('@wppconnect-team/wppconnect');
 const qrcode = require('qrcode-terminal');
@@ -383,31 +413,44 @@ const axios = require('axios');
 const execPromise = util.promisify(exec);
 moment.locale('es');
 
+// ==============================================
+// RUTAS FIJAS EN /sshbot
+// ==============================================
+const BASE_PATH = '/sshbot';
+const CONFIG_FILE = path.join(BASE_PATH, 'config/config.json');
+const DB_FILE = path.join(BASE_PATH, 'data/users.db');
+const INFO_FILE = path.join(BASE_PATH, 'config/info.txt');
+
 // Cargar configuración
 function loadConfig() {
-    delete require.cache[require.resolve('/opt/tienda-libre-ar-bot/config/config.json')];
-    return require('/opt/tienda-libre-ar-bot/config/config.json');
+    try {
+        delete require.cache[require.resolve(CONFIG_FILE)];
+        return require(CONFIG_FILE);
+    } catch (error) {
+        console.error(chalk.red('❌ Error cargando configuración:'), error.message);
+        console.error(chalk.yellow('Buscando en:'), CONFIG_FILE);
+        process.exit(1);
+    }
 }
 
 let config = loadConfig();
-const db = new sqlite3.Database('/opt/tienda-libre-ar-bot/data/users.db');
+const db = new sqlite3.Database(DB_FILE);
 
-// Función para leer el archivo de información (EDITABLE)
+// Función para leer el archivo de información
 function getInfoMessage() {
     try {
-        const infoPath = config.bot.info_file || '/opt/tienda-libre-ar-bot/config/info.txt';
-        if (fs.existsSync(infoPath)) {
-            return fs.readFileSync(infoPath, 'utf8');
+        if (fs.existsSync(INFO_FILE)) {
+            return fs.readFileSync(INFO_FILE, 'utf8');
         }
     } catch (error) {
         console.error('Error leyendo archivo info:', error);
     }
     
-    // Texto por defecto si no existe el archivo
+    // Texto por defecto
     return `*📢 INFORMACIÓN DEL BOT*
 
 🔐 *TODOS LOS USUARIOS:*
-• Contraseña: *12345* (fija para todos)
+• Contraseña: *12345* (fija)
 • Usuario termina en *'j'*
 
 🌐 *SERVIDOR:*
@@ -423,8 +466,7 @@ function getInfoMessage() {
 
 console.log(chalk.cyan.bold('\n╔══════════════════════════════════════════════════════════════╗'));
 console.log(chalk.cyan.bold(`║           ${config.bot.name.padEnd(42)}║`));
-console.log(chalk.cyan.bold('║     ✅ INFO EDITABLE DESDE VPS · ✅ MENÚ COMPLETO           ║'));
-console.log(chalk.cyan.bold('║     ✅ USUARIOS TERMINAN EN j · CONTRASEÑA 12345            ║'));
+console.log(chalk.cyan.bold('║     ✅ INSTALACIÓN ÚNICA EN /sshb ot · ✅ MENÚ COMPLETO       ║'));
 console.log(chalk.cyan.bold('╚══════════════════════════════════════════════════════════════╝\n'));
 
 // ==============================================
@@ -501,7 +543,6 @@ async function createSSHUser(username, days = 0, maxConnections = 1) {
     }
 }
 
-// Función para RENOVAR usuario
 async function renewSSHUser(username, days) {
     try {
         const newExpiry = moment().add(days, 'days').format('YYYY-MM-DD');
@@ -592,17 +633,6 @@ function getPlansToBuyMessage() {
 👉 Responde con el número del plan:`;
 }
 
-function getRenewMessage() {
-    return `*🔄 RENOVAR USUARIO*
-
-Primero, necesito que me muestres tus cuentas activas.
-
-*1* - Ver mis cuentas
-*0* - Volver al menú principal
-
-👉 Responde:`;
-}
-
 function getAndroidPromptMessage() {
     return `*📲 ¿QUÉ TIPO DE DISPOSITIVO USAS?*
 
@@ -632,7 +662,6 @@ async function handleMessage(message) {
     
     console.log(chalk.blue(`📱 ${phone}: "${text}" (Estado: ${userState.state})`));
     
-    // Comando para volver al menú principal
     if (text.toLowerCase() === 'menu' || text === '0') {
         await setUserState(phone, 'main_menu');
         await client.sendText(message.from, getMainMenuMessage());
@@ -664,49 +693,37 @@ async function handleMessage(message) {
     }
 }
 
-// ==============================================
-// MANEJADOR DEL MENÚ PRINCIPAL
-// ==============================================
 async function handleMainMenu(phone, text, from) {
     switch (text) {
-        case '1': // INFORMACIÓN (EDITABLE)
+        case '1':
             const infoMessage = getInfoMessage();
             await client.sendText(from, infoMessage + '\n\n_Escribe *menu* para volver_');
             await setUserState(phone, 'main_menu');
             break;
-            
-        case '2': // PRECIOS
+        case '2':
             await client.sendText(from, getPricesMessage());
             await setUserState(phone, 'main_menu');
             break;
-            
-        case '3': // COMPRAR USUARIO
+        case '3':
             await setUserState(phone, 'buying_plan', {});
             await client.sendText(from, getPlansToBuyMessage());
             break;
-            
-        case '4': // RENOVAR USUARIO
+        case '4':
             await handleRenewStart(phone, from);
             break;
-            
-        case '5': // DESCARGAR APLICACION
+        case '5':
             await setUserState(phone, 'waiting_os');
             await client.sendText(from, getAndroidPromptMessage());
             break;
-            
-        case '6': // HABLAR CON REPRESENTANTE
+        case '6':
             await client.sendText(from, `*👥 REPRESENTANTE*\n\nContacta con nosotros:\n${config.links.support}\n\n_Escribe *menu* para volver_`);
             await setUserState(phone, 'main_menu');
             break;
-            
         default:
             await client.sendText(from, `❌ Opción no válida. Elige 1-6.\n\n${getMainMenuMessage()}`);
     }
 }
 
-// ==============================================
-// COMPRA DE USUARIO
-// ==============================================
 async function handleBuyingPlan(phone, text, from, data) {
     const planNumber = parseInt(text);
     
@@ -770,9 +787,6 @@ _Escribe *menu* para volver_`);
     }
 }
 
-// ==============================================
-// RENOVAR USUARIO
-// ==============================================
 async function handleRenewStart(phone, from) {
     db.all(`SELECT username, expires_at FROM users WHERE phone = ? AND status = 1 ORDER BY created_at DESC`, [phone], async (err, rows) => {
         if (err || !rows || rows.length === 0) {
@@ -856,7 +870,6 @@ async function handleRenewPlanSelection(phone, text, from, data) {
     const plan = plans[planNumber];
     
     if (plan && data && data.username) {
-        // Crear pago para renovación
         const payment = await createMercadoPagoPayment(phone, `RENOVACIÓN ${data.username}`, plan.days, plan.price);
         
         if (payment.success) {
@@ -883,9 +896,6 @@ _Escribe *menu* para volver_`);
     }
 }
 
-// ==============================================
-// MANEJAR SELECCIÓN ANDROID/APPLE
-// ==============================================
 async function handleOSSelection(phone, text, from) {
     if (text === '1') {
         await client.sendText(from, `*📲 DESCARGA PARA ANDROID*
@@ -961,7 +971,7 @@ async function startBot() {
         setupCleanupCron();
         
         client = await wppconnect.create({
-            session: 'bot-editable',
+            session: 'sshbot-unico',
             folderNameToken: config.paths.sessions,
             puppeteerOptions: {
                 executablePath: chromePath,
@@ -980,8 +990,7 @@ async function startBot() {
                 console.log(chalk.cyan('2. Escanea este código QR'));
                 console.log(chalk.cyan('3. El bot mostrará el menú completo\n'));
                 
-                // Guardar QR
-                const qrImagePath = `/opt/tienda-libre-ar-bot/qr_codes/qr-${Date.now()}.png`;
+                const qrImagePath = `/sshbot/qr_codes/qr-${Date.now()}.png`;
                 QRCode.toFile(qrImagePath, base64Qr, { width: 300 }, (err) => {
                     if (!err) console.log(chalk.green(`✅ QR guardado en: ${qrImagePath}`));
                 });
@@ -1000,7 +1009,7 @@ async function startBot() {
             
             if (state === 'CONNECTED') {
                 console.log(chalk.green(`\n✅ ${config.bot.name} LISTO`));
-                console.log(chalk.cyan('💬 El bot ya puede recibir mensajes\n'));
+                console.log(chalk.cyan('💬 Envía "menu" al número del bot\n'));
             }
         });
         
@@ -1027,26 +1036,27 @@ async function startBot() {
 startBot();
 BOTEOF
 
-echo -e "${GREEN}✅ Bot.js creado con información editable${NC}"
+echo -e "${GREEN}✅ Bot.js creado en /sshbot/bot.js${NC}"
 
 # ================================================
-# SCRIPT DE CONTROL CON EDITORES
+# CREAR SCRIPT DE CONTROL 'botwa'
 # ================================================
 echo -e "\n${CYAN}${BOLD}⚙️ Creando script de control 'botwa'...${NC}"
+
 cat > "/usr/local/bin/botwa" << 'CONTROLEOF'
 #!/bin/bash
 BOLD='\033[1m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; CYAN='\033[0;36m'; NC='\033[0m'
 
-BOT_DIR="/opt/tienda-libre-ar-bot"
-CONFIG_FILE="$BOT_DIR/config/config.json"
-INFO_FILE="$BOT_DIR/config/info.txt"
+BASE_DIR="/sshbot"
+CONFIG_FILE="$BASE_DIR/config/config.json"
+INFO_FILE="$BASE_DIR/config/info.txt"
 
 case "$1" in
     menu|"")
         echo -e "${CYAN}${BOLD}===== 🤖 BOT ADMINISTRABLE =====${NC}"
         echo -e "${GREEN}Comandos disponibles:${NC}"
         echo -e "  ${YELLOW}botwa menu${NC}       - Mostrar este menú"
-        echo -e "  ${YELLOW}botwa edit info${NC}   - Editar texto de INFORMACIÓN (opción 1)"
+        echo -e "  ${YELLOW}botwa edit info${NC}   - Editar texto de INFORMACIÓN"
         echo -e "  ${YELLOW}botwa edit precios${NC} - Editar precios"
         echo -e "  ${YELLOW}botwa edit soporte${NC} - Editar número de soporte"
         echo -e "  ${YELLOW}botwa edit app${NC}     - Editar link de la APP"
@@ -1056,12 +1066,13 @@ case "$1" in
         echo -e "  ${YELLOW}botwa start${NC}       - Iniciar bot"
         echo -e "  ${YELLOW}botwa mercadopago${NC} - Configurar MP"
         echo -e "  ${YELLOW}botwa show info${NC}    - Ver texto actual de información"
+        echo -e "\n📁 Instalación única en: ${CYAN}/sshbot${NC}"
         ;;
         
     edit)
         case "$2" in
             info)
-                echo -e "${CYAN}📝 Editando texto de INFORMACIÓN (opción 1 del menú)${NC}"
+                echo -e "${CYAN}📝 Editando texto de INFORMACIÓN${NC}"
                 echo -e "${YELLOW}Texto actual:${NC}"
                 echo "--------------------------------------------------------"
                 cat "$INFO_FILE"
@@ -1069,7 +1080,7 @@ case "$1" in
                 echo -e "${GREEN}Escribe el nuevo texto (Ctrl+D para guardar):${NC}"
                 cat > "$INFO_FILE"
                 echo -e "${GREEN}✅ Texto de información actualizado${NC}"
-                echo -e "${YELLOW}Reinicia el bot para aplicar: botwa restart${NC}"
+                echo -e "${YELLOW}Reinicia el bot: botwa restart${NC}"
                 ;;
                 
             precios)
@@ -1140,23 +1151,23 @@ case "$1" in
         ;;
         
     logs)
-        pm2 logs tienda-libre-ar-bot --lines 50
+        pm2 logs sshbot-unico --lines 50
         ;;
         
     restart)
         echo -e "${CYAN}🔄 Reiniciando bot...${NC}"
-        pm2 restart tienda-libre-ar-bot
+        pm2 restart sshbot-unico
         ;;
         
     stop)
         echo -e "${YELLOW}⏹️ Deteniendo bot...${NC}"
-        pm2 stop tienda-libre-ar-bot
+        pm2 stop sshbot-unico
         ;;
         
     start)
         echo -e "${GREEN}▶️ Iniciando bot...${NC}"
-        cd /root/tienda-libre-ar-bot
-        pm2 start bot.js --name tienda-libre-ar-bot --time
+        cd "$BASE_DIR"
+        pm2 start bot.js --name sshbot-unico --time
         pm2 save
         ;;
         
@@ -1165,6 +1176,23 @@ case "$1" in
         read -p "Access Token: " token
         jq --arg t "$token" '.mercadopago.access_token = $t | .mercadopago.enabled = true' "$CONFIG_FILE" > /tmp/config.tmp && mv /tmp/config.tmp "$CONFIG_FILE"
         echo -e "${GREEN}✅ Token guardado. Reinicia: botwa restart${NC}"
+        ;;
+        
+    clean)
+        echo -e "${YELLOW}🧹 Limpiando sesión de WhatsApp...${NC}"
+        pm2 stop sshbot-unico 2>/dev/null
+        rm -rf /root/.wppconnect/sshbot-unico/*
+        echo -e "${GREEN}✅ Sesión limpiada. Reinicia: botwa restart${NC}"
+        ;;
+        
+    fix)
+        echo -e "${YELLOW}🔧 Aplicando fix completo...${NC}"
+        pm2 stop sshbot-unico 2>/dev/null
+        pkill -f chrome 2>/dev/null
+        rm -rf /root/.wppconnect/sshbot-unico/*
+        cd "$BASE_DIR"
+        pm2 start bot.js --name sshbot-unico -f --time
+        echo -e "${GREEN}✅ Fix aplicado. Espera el QR con: botwa logs${NC}"
         ;;
         
     *)
@@ -1178,6 +1206,7 @@ chmod +x /usr/local/bin/botwa
 # ================================================
 # CONFIGURAR PM2
 # ================================================
+echo -e "\n${CYAN}${BOLD}⚙️ Configurando PM2...${NC}"
 pm2 startup
 pm2 save
 
@@ -1185,8 +1214,8 @@ pm2 save
 # INICIAR BOT
 # ================================================
 echo -e "\n${CYAN}${BOLD}🚀 Iniciando bot...${NC}"
-cd "$USER_HOME"
-pm2 start bot.js --name tienda-libre-ar-bot --time
+cd "$INSTALL_DIR"
+pm2 start bot.js --name sshbot-unico --time
 pm2 save
 
 echo -e "${GREEN}"
@@ -1197,7 +1226,8 @@ cat << "SUCCESS"
 SUCCESS
 echo -e "${NC}"
 
-echo -e "${YELLOW}📋 CONFIGURACIÓN GUARDADA:${NC}"
+echo -e "${YELLOW}📋 INSTALACIÓN ÚNICA EN /sshbot:${NC}"
+echo -e "   • Carpeta: ${CYAN}/sshbot${NC} (siempre aquí)"
 echo -e "   • Nombre del bot: ${CYAN}$BOT_NAME${NC}"
 echo -e "   • Contraseña fija: ${CYAN}12345${NC}"
 echo -e "   • Usuarios terminan en: ${CYAN}j${NC}"
@@ -1212,19 +1242,20 @@ echo -e "  ${GREEN}botwa edit precios${NC}   - Editar precios"
 echo -e "  ${GREEN}botwa edit soporte${NC}   - Editar número soporte"
 echo -e "  ${GREEN}botwa edit app${NC}       - Editar link APP"
 echo -e "  ${GREEN}botwa logs${NC}           - Ver QR y logs"
+echo -e "  ${GREEN}botwa fix${NC}            - Reparar si hay errores"
 
 echo -e "\n${CYAN}📱 EN WHATSAPP (MENÚ COMPLETO):${NC}"
-echo -e "  • Opción 1: INFORMACIÓN (texto editable desde VPS)"
-echo -e "  • Opción 2: PRECIOS (editables desde VPS)"
-echo -e "  • Opción 3: COMPRAR USUARIO"
-echo -e "  • Opción 4: RENOVAR USUARIO"
-echo -e "  • Opción 5: DESCARGAR APP (pregunta Android/Apple)"
-echo -e "  • Opción 6: HABLAR CON REPRESENTANTE"
+echo -e "  • 1 ⁃📢 INFORMACIÓN (texto editable desde VPS)"
+echo -e "  • 2 ⁃🏷️ PRECIOS (editables desde VPS)"
+echo -e "  • 3 ⁃🛍️ COMPRAR USUARIO"
+echo -e "  • 4 ⁃🔄 RENOVAR USUARIO"
+echo -e "  • 5 ⁃📲 DESCARGAR APP (pregunta Android/Apple)"
+echo -e "  • 6 ⁃👥 HABLAR CON REPRESENTANTE"
 
 echo -e "\n${YELLOW}📢 MOSTRANDO LOGS (ESPERA EL QR)...${NC}"
 sleep 2
-pm2 logs tienda-libre-ar-bot --lines 15 --nostream
+pm2 logs sshbot-unico --lines 15 --nostream
 
 echo -e "\n${CYAN}══════════════════════════════════════════════════════════════${NC}"
-echo -e "${BOLD}✅ BOT ADMINISTRABLE v3.0 - INFO EDITABLE DESDE VPS${NC}"
+echo -e "${BOLD}✅ INSTALACIÓN ÚNICA EN /sshbot - TODAS LAS VERSIONES AQUÍ${NC}"
 echo -e "${CYAN}══════════════════════════════════════════════════════════════${NC}"
