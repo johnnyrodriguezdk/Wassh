@@ -1,11 +1,11 @@
 #!/bin/bash
 # ================================================
-# SERVERTUC™ BOT v9.2 - VERSIÓN FINAL CORREGIDA
-# ✅ ERRORES SOLUCIONADOS:
-#   - Error "browser already running"
-#   - Error "client.onAuthenticated is not a function"
-#   - Error de versión de WhatsApp
-#   - Auto-reconexión mejorada
+# SSH BOT PRO - MODIFICADO (LIMPIEZA + MENÚ PERSONALIZABLE)
+# Basado en: https://github.com/martincho247/ssh-bot
+# Mejoras:
+#   ✅ Limpieza total inicial (como solicitaste)
+#   ✅ Menú principal editable (1=Prueba, 2=Planes, 3=Cuentas, 4=Pagos, 5=APP, 6=Soporte)
+#   ✅ Nombre del bot configurable durante instalación
 # ================================================
 
 set -e
@@ -26,100 +26,111 @@ echo -e "${CYAN}${BOLD}"
 cat << "BANNER"
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║    ███████╗███████╗██████╗ ██╗   ██╗██████╗ ████████╗██╗   ██╗║
-║    ██╔════╝██╔════╝██╔══██╗██║   ██║██╔══██╗╚══██╔══╝██║   ██║║
-║    ███████╗█████╗  ██████╔╝██║   ██║██████╔╝   ██║   ██║   ██║║
-║    ╚════██║██╔══╝  ██╔══██╗██║   ██║██╔══██╗   ██║   ██║   ██║║
-║    ███████║███████╗██║  ██║╚██████╔╝██║  ██║   ██║   ╚██████╔╝║
-║    ╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ║
+║     ███████╗███████╗██║  ██║    ██████╗  ██████╗ ████████╗  ║
+║     ██╔════╝██╔════╝██║  ██║    ██╔══██╗██╔═══██╗╚══██╔══╝  ║
+║     ███████╗███████╗███████║    ██████╔╝██║   ██║   ██║     ║
+║     ╚════██║╚════██║██╔══██║    ██╔══██╗██║   ██║   ██║     ║
+║     ███████║███████╗██║  ██║    ██████╔╝╚██████╔╝   ██║     ║
+║     ╚══════╝╚══════╝╚═╝  ╚═╝    ╚═════╝  ╚═════╝    ╚═╝     ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
-║              SERVERTUC™ BOT v9.2 - FINAL                     ║
-║         ✅ TODOS LOS ERRORES CORREGIDOS                      ║
-║         ✅ WPPCONNECT OPTIMIZADO                             ║
-║         ✅ MENÚS ORIGINALES + SISTEMA DE ESTADOS             ║
+║        🤖 SSH BOT PRO - VERSIÓN MEJORADA                    ║
+║        ✅ CON LIMPIEZA TOTAL INICIAL                         ║
+║        ✅ MENÚ PERSONALIZABLE (6 OPCIONES)                   ║
+║        ✅ NOMBRE DEL BOT CONFIGURABLE                        ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 BANNER
 echo -e "${NC}"
 
-echo -e "${GREEN}✅ CARACTERÍSTICAS CORREGIDAS:${NC}"
-echo -e "  🔴 ${RED}ERRORES ELIMINADOS:${NC}"
-echo -e "     ✓ Error de navegador ya corriendo"
-echo -e "     ✓ Error client.onAuthenticated"
-echo -e "     ✓ Error de versión WhatsApp"
-echo -e "     ✓ Auto-reconexión infinita"
-echo -e "  🟢 ${GREEN}MENÚS ORIGINALES FUNCIONALES:${NC}"
-echo -e "     • 1=Prueba | 2=Planes | 3=Cuentas | 4=Pagos | 5=APP | 6=Soporte"
-echo -e "     • 7 planes disponibles (incluye 50 días)"
-echo -e "  📱 ${CYAN}WPPCONNECT CONFIGURADO CORRECTAMENTE${NC}"
+echo -e "${GREEN}✅ CARACTERÍSTICAS PRINCIPALES:${NC}"
+echo -e "  📱 ${CYAN}WPPConnect${NC} - API WhatsApp que funciona"
+echo -e "  💰 ${GREEN}MercadoPago SDK v2.x${NC} - Integrado completo"
+echo -e "  🎛️  ${PURPLE}Menú personalizado${NC} - 1=Prueba, 2=Planes, 3=Cuentas, 4=Pagos, 5=APP, 6=Soporte"
+echo -e "  🧹 ${YELLOW}Limpieza total inicial${NC} - Elimina instalaciones anteriores"
 echo -e "${CYAN}══════════════════════════════════════════════════════════════${NC}\n"
 
 # Verificar root
 if [[ $EUID -ne 0 ]]; then
-    echo -e "${RED}${BOLD}❌ ERROR: Debes ejecutar como root${NC}"
+    echo -e "${RED}❌ Debes ejecutar como root${NC}"
     echo -e "${YELLOW}Usa: sudo bash $0${NC}"
     exit 1
 fi
 
+# ================================================
+# LIMPIEZA TOTAL INICIAL (Como solicitaste)
+# ================================================
+echo -e "\n${CYAN}${BOLD}🧹 EJECUTANDO LIMPIEZA TOTAL...${NC}"
+
+# Matar procesos
+echo -e "${YELLOW}Deteniendo procesos...${NC}"
+pm2 kill 2>/dev/null || true
+pkill -f node 2>/dev/null || true
+pkill -f chrome 2>/dev/null || true
+pkill -f chromium 2>/dev/null || true
+
+# Eliminar directorios de instalaciones anteriores
+echo -e "${YELLOW}Eliminando instalaciones anteriores...${NC}"
+rm -rf /opt/ssh-bot /root/ssh-bot 2>/dev/null || true
+rm -rf /opt/sshbot-pro /root/sshbot-pro 2>/dev/null || true
+rm -rf /root/ssh-bot-whatsapp /root/iniciar-bot.sh 2>/dev/null || true
+rm -rf /root/SSH-BOT /root/ssh-bot-pro 2>/dev/null || true
+
+# Eliminar sesiones de WhatsApp
+echo -e "${YELLOW}Limpiando sesiones de WhatsApp...${NC}"
+rm -rf /root/.wppconnect 2>/dev/null || true
+rm -rf /root/.wwebjs_auth 2>/dev/null || true
+rm -rf /root/.wwebjs_cache 2>/dev/null || true
+rm -rf /root/.pm2/logs/* 2>/dev/null || true
+
+echo -e "${GREEN}✅ Limpieza completada${NC}\n"
+
+# ================================================
+# CONFIGURACIÓN DEL BOT (NUEVO - Personalizable)
+# ================================================
+echo -e "${CYAN}${BOLD}⚙️ CONFIGURACIÓN DEL BOT${NC}"
+
+# Nombre del bot
+read -p "📝 Nombre para tu bot (ej: MI BOT PRO): " BOT_NAME
+BOT_NAME=${BOT_NAME:-"SSH Bot Pro"}
+
+# Contraseña por defecto
+read -p "🔐 Contraseña por defecto para usuarios (Enter para '12345'): " DEFAULT_PASS
+DEFAULT_PASS=${DEFAULT_PASS:-"12345"}
+
+# Horas de prueba
+read -p "⏰ Horas de prueba gratis (Enter para 2): " TEST_HOURS
+TEST_HOURS=${TEST_HOURS:-2}
+
+echo -e "\n${GREEN}✅ Configuración guardada${NC}\n"
+
 # Detectar IP
-echo -e "${CYAN}${BOLD}🔍 DETECTANDO IP DEL SERVIDOR...${NC}"
+echo -e "${CYAN}🔍 Detectando IP...${NC}"
 SERVER_IP=$(curl -4 -s --max-time 10 ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}' || echo "127.0.0.1")
 if [[ -z "$SERVER_IP" || "$SERVER_IP" == "127.0.0.1" ]]; then
-    echo -e "${RED}❌ No se pudo obtener IP pública${NC}"
     read -p "📝 Ingresa la IP del servidor manualmente: " SERVER_IP
 fi
-echo -e "${GREEN}✅ IP detectada: ${CYAN}$SERVER_IP${NC}\n"
+echo -e "${GREEN}✅ IP: ${CYAN}$SERVER_IP${NC}\n"
 
 # Confirmar instalación
-echo -e "${YELLOW}⚠️  ESTE INSTALADOR CORREGIDO REALIZARÁ:${NC}"
-echo -e "   • Limpieza TOTAL de procesos y sesiones"
-echo -e "   • Instalación Node.js 18.x + Chrome"
-echo -e "   • Bot con TODOS los errores solucionados"
-echo -e "   • Menús originales del primer bot"
-echo -e "   • API WPPConnect optimizada"
-echo -e "   • Contraseña fija: 12345"
-echo -e "   • Usuarios terminan en 'j'"
-echo -e "\n${RED}⚠️  Se eliminarán TODAS las instalaciones anteriores${NC}"
+echo -e "${YELLOW}⚠️  SE INSTALARÁ CON:${NC}"
+echo -e "   • Nombre del bot: ${GREEN}$BOT_NAME${NC}"
+echo -e "   • Contraseña: ${GREEN}$DEFAULT_PASS${NC}"
+echo -e "   • Horas de prueba: ${GREEN}$TEST_HOURS${NC}"
+echo -e "   • IP del servidor: ${GREEN}$SERVER_IP${NC}"
 
-read -p "$(echo -e "${YELLOW}¿Continuar con la instalación? (s/N): ${NC}")" -n 1 -r
+read -p "$(echo -e "${YELLOW}¿Continuar instalación? (s/N): ${NC}")" -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Ss]$ ]]; then
-    echo -e "${RED}❌ Instalación cancelada${NC}"
+    echo -e "${RED}❌ Cancelado${NC}"
     exit 0
 fi
 
 # ================================================
-# 1. LIMPIEZA PROFUNDA
+# INSTALAR DEPENDENCIAS
 # ================================================
-echo -e "\n${CYAN}${BOLD}🧹 LIMPIEZA PROFUNDA DEL SISTEMA...${NC}"
+echo -e "\n${CYAN}📦 Instalando dependencias...${NC}"
 
-# Matar procesos
-echo -e "${YELLOW}Deteniendo procesos...${NC}"
-pkill -f chrome 2>/dev/null || true
-pkill -f chromium 2>/dev/null || true
-pkill -f node 2>/dev/null || true
-pm2 kill 2>/dev/null || true
-
-# Eliminar directorios
-echo -e "${YELLOW}Eliminando instalaciones anteriores...${NC}"
-rm -rf /root/.wppconnect 2>/dev/null || true
-rm -rf /root/.config/puppeteer 2>/dev/null || true
-rm -rf /opt/ssh-bot 2>/dev/null || true
-rm -rf /root/ssh-bot 2>/dev/null || true
-rm -rf /root/.pm2/logs/* 2>/dev/null || true
-
-# Limpiar caché
-npm cache clean --force 2>/dev/null || true
-
-echo -e "${GREEN}✅ Limpieza completada${NC}"
-
-# ================================================
-# 2. INSTALAR DEPENDENCIAS
-# ================================================
-echo -e "\n${CYAN}${BOLD}📦 INSTALANDO DEPENDENCIAS...${NC}"
-
-# Actualizar sistema
 apt-get update -y
 apt-get upgrade -y
 
@@ -128,7 +139,7 @@ echo -e "${YELLOW}📦 Instalando Node.js 18.x...${NC}"
 curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 apt-get install -y nodejs gcc g++ make
 
-# Google Chrome
+# Chrome/Chromium
 echo -e "${YELLOW}🌐 Instalando Google Chrome...${NC}"
 wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
 echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
@@ -139,57 +150,59 @@ apt-get install -y google-chrome-stable
 echo -e "${YELLOW}⚙️ Instalando utilidades...${NC}"
 apt-get install -y \
     git curl wget sqlite3 jq \
-    build-essential libcairo2-dev libpango1.0-dev \
-    libjpeg-dev libgif-dev librsvg2-dev \
-    python3 python3-pip ffmpeg unzip \
-    cron ufw
+    build-essential libcairo2-dev \
+    libpango1.0-dev libjpeg-dev \
+    libgif-dev librsvg2-dev \
+    python3 python3-pip ffmpeg \
+    unzip cron ufw
+
+# Configurar firewall
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw allow 8001/tcp
+ufw allow 3000/tcp
+ufw --force enable
 
 # PM2
 npm install -g pm2
 pm2 update
 
-# Firewall
-ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp
-ufw allow 8001/tcp && ufw allow 3000/tcp
-ufw --force enable
-
 echo -e "${GREEN}✅ Dependencias instaladas${NC}"
 
 # ================================================
-# 3. PREPARAR ESTRUCTURA
+# PREPARAR ESTRUCTURA
 # ================================================
-echo -e "\n${CYAN}${BOLD}📁 CREANDO ESTRUCTURA...${NC}"
+echo -e "\n${CYAN}📁 Creando estructura...${NC}"
 
-INSTALL_DIR="/opt/ssh-bot"
-USER_HOME="/root/ssh-bot"
+INSTALL_DIR="/opt/sshbot-pro"
+USER_HOME="/root/sshbot-pro"
 DB_FILE="$INSTALL_DIR/data/users.db"
 CONFIG_FILE="$INSTALL_DIR/config/config.json"
 
 # Crear directorios
-mkdir -p "$INSTALL_DIR"/{data,config,qr_codes,logs}
+mkdir -p "$INSTALL_DIR"/{data,config,sessions,logs,qr_codes}
 mkdir -p "$USER_HOME"
-mkdir -p /root/.wppconnect/servertuc-bot
+mkdir -p /root/.wppconnect
 chmod -R 755 "$INSTALL_DIR"
 chmod -R 700 /root/.wppconnect
 
-# Crear configuración
+# Configuración con valores personalizados
 cat > "$CONFIG_FILE" << EOF
 {
     "bot": {
-        "name": "SERVERTUC™ BOT",
-        "version": "9.2-FINAL",
+        "name": "$BOT_NAME",
+        "version": "2.1-MENU-PERSONALIZADO",
         "server_ip": "$SERVER_IP",
-        "default_password": "12345"
+        "default_password": "$DEFAULT_PASS",
+        "test_hours": $TEST_HOURS
     },
     "prices": {
-        "test_hours": 2,
-        "price_7d_1conn": 500.00,
-        "price_15d_1conn": 800.00,
-        "price_30d_1conn": 1200.00,
-        "price_50d_1conn": 1800.00,
-        "price_7d_2conn": 800.00,
-        "price_15d_2conn": 1200.00,
-        "price_30d_2conn": 1800.00,
+        "test_hours": $TEST_HOURS,
+        "price_7d": 3000.00,
+        "price_15d": 4000.00,
+        "price_30d": 7000.00,
+        "price_50d": 9700.00,
         "currency": "ARS"
     },
     "mercadopago": {
@@ -198,15 +211,14 @@ cat > "$CONFIG_FILE" << EOF
         "public_key": ""
     },
     "links": {
-        "tutorial": "https://youtube.com",
-        "support": "https://wa.me/3813414485",
-        "app_download": "https://www.mediafire.com/file/p8kgthxbsid7xws/MAJ/DNI_AND_FIL"
+        "app_download": "https://www.mediafire.com/file/p8kgthxbsid7xws/MAJ/DNI_AND_FIL",
+        "support": "https://wa.me/543435071016"
     },
     "paths": {
         "database": "$DB_FILE",
         "chromium": "/usr/bin/google-chrome",
         "qr_codes": "$INSTALL_DIR/qr_codes",
-        "sessions": "/root/.wppconnect/servertuc-bot"
+        "sessions": "/root/.wppconnect"
     }
 }
 EOF
@@ -237,7 +249,6 @@ CREATE TABLE payments (
     phone TEXT,
     plan TEXT,
     days INTEGER,
-    connections INTEGER DEFAULT 1,
     amount REAL,
     status TEXT DEFAULT 'pending',
     payment_url TEXT,
@@ -268,16 +279,17 @@ SQL
 echo -e "${GREEN}✅ Estructura creada${NC}"
 
 # ================================================
-# 4. CREAR BOT.JS (VERSIÓN FINAL CORREGIDA)
+# CREAR BOT.JS CON MENÚ PERSONALIZADO
 # ================================================
-echo -e "\n${CYAN}${BOLD}🤖 CREANDO BOT.JS CORREGIDO...${NC}"
+echo -e "\n${CYAN}🤖 Creando bot.js con menú personalizado...${NC}"
+
 cd "$USER_HOME"
 
 # package.json
 cat > package.json << 'PKGEOF'
 {
-    "name": "servertuc-bot",
-    "version": "9.2.0",
+    "name": "sshbot-pro",
+    "version": "2.1.0",
     "main": "bot.js",
     "dependencies": {
         "@wppconnect-team/wppconnect": "^1.24.0",
@@ -297,7 +309,7 @@ PKGEOF
 echo -e "${YELLOW}📦 Instalando dependencias...${NC}"
 npm install --silent 2>&1 | grep -v "npm WARN" || true
 
-# bot.js VERSIÓN FINAL CORREGIDA
+# bot.js con menú personalizado
 cat > "bot.js" << 'BOTEOF'
 const wppconnect = require('@wppconnect-team/wppconnect');
 const qrcode = require('qrcode-terminal');
@@ -315,25 +327,19 @@ const axios = require('axios');
 const execPromise = util.promisify(exec);
 moment.locale('es');
 
-console.log(chalk.cyan.bold('\n╔══════════════════════════════════════════════════════════════╗'));
-console.log(chalk.cyan.bold('║           SERVERTUC™ BOT v9.2 - VERSIÓN FINAL                ║'));
-console.log(chalk.cyan.bold('║          ✅ TODOS LOS ERRORES CORREGIDOS                      ║'));
-console.log(chalk.cyan.bold('╚══════════════════════════════════════════════════════════════╝\n'));
-
-// ==============================================
-// CARGA DE CONFIGURACIÓN
-// ==============================================
+// Cargar configuración
 function loadConfig() {
-    try {
-        delete require.cache[require.resolve('/opt/ssh-bot/config/config.json')];
-        return require('/opt/ssh-bot/config/config.json');
-    } catch (error) {
-        console.error(chalk.red('❌ Error cargando configuración:'), error.message);
-        process.exit(1);
-    }
+    delete require.cache[require.resolve('/opt/sshbot-pro/config/config.json')];
+    return require('/opt/sshbot-pro/config/config.json');
 }
+
 let config = loadConfig();
-const db = new sqlite3.Database('/opt/ssh-bot/data/users.db');
+const db = new sqlite3.Database('/opt/sshbot-pro/data/users.db');
+
+console.log(chalk.cyan.bold('\n╔══════════════════════════════════════════════════════════════╗'));
+console.log(chalk.cyan.bold(`║           ${config.bot.name.padEnd(42)}║`));
+console.log(chalk.cyan.bold('║              MENÚ PERSONALIZADO (6 OPCIONES)                ║'));
+console.log(chalk.cyan.bold('╚══════════════════════════════════════════════════════════════╝\n'));
 
 // ==============================================
 // MERCADOPAGO SDK V2.X
@@ -389,17 +395,18 @@ function setUserState(phone, state, data = null) {
 function generateSSHUsername(phone) {
     const timestamp = Date.now().toString().slice(-6);
     const random = Math.floor(Math.random() * 90) + 10;
-    return `user${timestamp}${random}j`;
+    return `user${timestamp}${random}`;
 }
 
-async function createSSHUser(username, password = '12345', days = 0, maxConnections = 1) {
+async function createSSHUser(username, password, days = 0, maxConnections = 1) {
     try {
-        const expiryDate = days > 0 ? moment().add(days, 'days').format('YYYY-MM-DD HH:mm:ss') : moment().add(config.prices.test_hours, 'hours').format('YYYY-MM-DD HH:mm:ss');
+        const expiryDate = days > 0 ? 
+            moment().add(days, 'days').format('YYYY-MM-DD HH:mm:ss') : 
+            moment().add(config.bot.test_hours, 'hours').format('YYYY-MM-DD HH:mm:ss');
+        
         await execPromise(`useradd -M -s /bin/false -e $(date -d "${expiryDate}" +%Y-%m-%d) ${username} 2>/dev/null || true`);
         await execPromise(`echo "${username}:${password}" | chpasswd`);
-        if (maxConnections > 1) {
-            await execPromise(`echo "MaxSessions ${maxConnections}" >> /etc/ssh/sshd_config.d/${username}.conf 2>/dev/null || true`);
-        }
+        
         return { success: true, username, password, expires: expiryDate };
     } catch (error) {
         console.error('Error creando usuario SSH:', error);
@@ -410,28 +417,28 @@ async function createSSHUser(username, password = '12345', days = 0, maxConnecti
 // ==============================================
 // FUNCIONES MP
 // ==============================================
-async function createMercadoPagoPayment(phone, planName, days, amount, connections = 1) {
+async function createMercadoPagoPayment(phone, planName, days, amount) {
     if (!mpEnabled) return { success: false, error: 'MercadoPago no configurado' };
     try {
         const paymentId = `MP-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const preferenceData = {
             items: [{
-                title: `SERVERTUC™ - ${planName}`,
-                description: `Plan ${days} días - ${connections} conexión(es)`,
+                title: `${config.bot.name} - ${planName}`,
+                description: `Plan ${days} días`,
                 quantity: 1,
                 currency_id: 'ARS',
                 unit_price: parseFloat(amount)
             }],
             payer: { phone: { number: phone.replace('+', '') } },
-            payment_methods: { excluded_payment_types: [{ id: 'atm' }], installments: 1 },
             external_reference: paymentId,
             auto_return: 'approved'
         };
         const preference = await mpPreference.create({ body: preferenceData });
-        const qrPath = path.join(config.paths.qr_codes, `${paymentId}.png`);
-        await QRCode.toFile(qrPath, preference.init_point);
-        db.run(`INSERT INTO payments (payment_id, phone, plan, days, connections, amount, status, payment_url, qr_code, preference_id) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`, [paymentId, phone, planName, days, connections, amount, preference.init_point, qrPath, preference.id]);
-        return { success: true, paymentId, paymentUrl: preference.init_point, qrCode: qrPath };
+        
+        db.run(`INSERT INTO payments (payment_id, phone, plan, days, amount, status, payment_url, preference_id) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)`, 
+            [paymentId, phone, planName, days, amount, preference.init_point, preference.id]);
+        
+        return { success: true, paymentId, paymentUrl: preference.init_point };
     } catch (error) {
         console.error('Error creando pago MP:', error);
         return { success: false, error: error.message };
@@ -439,13 +446,13 @@ async function createMercadoPagoPayment(phone, planName, days, amount, connectio
 }
 
 // ==============================================
-// MENSAJES
+// MENSAJES (MENÚ PERSONALIZADO)
 // ==============================================
 function getMainMenuMessage() {
-    return `*🤖 SERVERTUC™ BOT v9.2*
+    return `*🤖 ${config.bot.name}*
 
 *MENÚ PRINCIPAL:*
-🔹 *1* - Prueba gratis (${config.prices.test_hours} horas)
+🔹 *1* - Prueba gratis (${config.bot.test_hours} horas)
 🔹 *2* - Ver planes y precios
 🔹 *3* - Mis cuentas SSH
 🔹 *4* - Estado de pago
@@ -458,30 +465,21 @@ function getMainMenuMessage() {
 function getPlansMenuMessage() {
     return `*📋 PLANES DISPONIBLES:*
 
-*1 CONEXIÓN:*
-🔸 *1* - 7 días → $${config.prices.price_7d_1conn} ARS
-🔸 *2* - 15 días → $${config.prices.price_15d_1conn} ARS
-🔸 *3* - 30 días → $${config.prices.price_30d_1conn} ARS
-🔸 *7* - 50 días → $${config.prices.price_50d_1conn} ARS
+🔸 *1* - 7 días → $${config.prices.price_7d} ARS
+🔸 *2* - 15 días → $${config.prices.price_15d} ARS
+🔸 *3* - 30 días → $${config.prices.price_30d} ARS
+🔸 *4* - 50 días → $${config.prices.price_50d} ARS
 
-*2 CONEXIONES:*
-🔸 *4* - 7 días → $${config.prices.price_7d_2conn} ARS
-🔸 *5* - 15 días → $${config.prices.price_15d_2conn} ARS
-🔸 *6* - 30 días → $${config.prices.price_30d_2conn} ARS
-
-*Elige el plan (1-7):*
+*Elige el plan (1-4):*
 _O escribe 0 para volver_`;
 }
 
 function getPlanDetails(planNumber) {
     const plans = {
-        1: { name: '7 días (1 conexión)', days: 7, connections: 1, price: 'price_7d_1conn' },
-        2: { name: '15 días (1 conexión)', days: 15, connections: 1, price: 'price_15d_1conn' },
-        3: { name: '30 días (1 conexión)', days: 30, connections: 1, price: 'price_30d_1conn' },
-        4: { name: '7 días (2 conexiones)', days: 7, connections: 2, price: 'price_7d_2conn' },
-        5: { name: '15 días (2 conexiones)', days: 15, connections: 2, price: 'price_15d_2conn' },
-        6: { name: '30 días (2 conexiones)', days: 30, connections: 2, price: 'price_30d_2conn' },
-        7: { name: '50 días (1 conexión)', days: 50, connections: 1, price: 'price_50d_1conn' }
+        1: { name: '7 días', days: 7, price: config.prices.price_7d },
+        2: { name: '15 días', days: 15, price: config.prices.price_15d },
+        3: { name: '30 días', days: 30, price: config.prices.price_30d },
+        4: { name: '50 días', days: 50, price: config.prices.price_50d }
     };
     return plans[planNumber] || null;
 }
@@ -542,12 +540,11 @@ async function handleMainMenu(phone, text, from) {
 
 async function handlePlansMenu(phone, text, from) {
     const planNumber = parseInt(text);
-    if (planNumber >= 1 && planNumber <= 7) {
+    if (planNumber >= 1 && planNumber <= 4) {
         const plan = getPlanDetails(planNumber);
         if (plan) {
             await setUserState(phone, 'buying_plan', { planNumber, ...plan });
-            const amount = config.prices[plan.price];
-            const msg = `*🛒 CONFIRMAR COMPRA:*\n\n*Plan:* ${plan.name}\n*Precio:* $${amount} ARS\n\n¿Continuar?\n\n🔘 *1* - Sí\n🔘 *2* - No\n🔘 *0* - Menú principal`;
+            const msg = `*🛒 CONFIRMAR COMPRA:*\n\n*Plan:* ${plan.name}\n*Precio:* $${plan.price} ARS\n\n¿Continuar?\n\n🔘 *1* - Sí\n🔘 *2* - No\n🔘 *0* - Menú principal`;
             await client.sendText(from, msg);
         }
     } else if (text === '0') {
@@ -560,11 +557,10 @@ async function handlePlansMenu(phone, text, from) {
 
 async function handleBuyingPlan(phone, text, from, planData) {
     if (text === '1') {
-        const amount = config.prices[planData.price];
-        const payment = await createMercadoPagoPayment(phone, planData.name, planData.days, amount, planData.connections);
+        const payment = await createMercadoPagoPayment(phone, planData.name, planData.days, planData.price);
         if (payment.success) {
             await client.sendText(from, `*✅ PAGO GENERADO:*\n\n*Enlace:* ${payment.paymentUrl}\n\n_Tras aprobar, recibirás credenciales._\n\nEscribe *menu* para volver.`);
-            await setUserState(phone, 'waiting_payment', { paymentId: payment.paymentId });
+            await setUserState(phone, 'waiting_payment', { paymentId: payment.paymentId, planData });
         } else {
             await client.sendText(from, `❌ Error: ${payment.error}\n\nEscribe *menu*`);
             await setUserState(phone, 'main_menu');
@@ -587,11 +583,12 @@ async function handleFreeTest(phone, from) {
             return;
         }
         const username = generateSSHUsername(phone);
-        const result = await createSSHUser(username, '12345', 0, 1);
+        const password = config.bot.default_password;
+        const result = await createSSHUser(username, password, 0);
         if (result.success) {
-            db.run(`INSERT INTO users (phone, username, password, tipo, expires_at) VALUES (?, ?, ?, 'test', ?)`, [phone, username, '12345', result.expires]);
+            db.run(`INSERT INTO users (phone, username, password, tipo, expires_at) VALUES (?, ?, ?, 'test', ?)`, [phone, username, password, result.expires]);
             db.run('INSERT INTO daily_tests (phone, date) VALUES (?, ?)', [phone, today]);
-            await client.sendText(from, `*✅ PRUEBA ACTIVADA:*\n\n*Usuario:* ${username}\n*Contraseña:* 12345\n*Servidor:* ${config.bot.server_ip}\n*Expira:* ${config.prices.test_hours} horas\n\n*APP:* ${config.links.app_download}\n\nEscribe *menu* para más opciones.`);
+            await client.sendText(from, `*✅ PRUEBA ACTIVADA:*\n\n*Usuario:* ${username}\n*Contraseña:* ${password}\n*Servidor:* ${config.bot.server_ip}\n*Expira:* ${config.bot.test_hours} horas\n\n*APP:* ${config.links.app_download}\n\nEscribe *menu* para más opciones.`);
             await setUserState(phone, 'main_menu');
         } else {
             await client.sendText(from, `❌ Error al crear cuenta.\nContacta a soporte: ${config.links.support}`);
@@ -646,66 +643,41 @@ function setupCleanupCron() {
                 await execPromise(`pkill -u ${user.username} 2>/dev/null || true`);
                 await execPromise(`userdel ${user.username} 2>/dev/null || true`);
                 db.run(`UPDATE users SET status = 0 WHERE username = ?`, [user.username]);
-                console.log(chalk.gray(`  ➤ Usuario ${user.username} eliminado`));
             }
         });
-        db.run(`DELETE FROM user_state WHERE updated_at < datetime('now', '-1 day')`);
     });
 }
 
 // ==============================================
-// INICIO DEL BOT (VERSIÓN FINAL CORREGIDA)
+// INICIO DEL BOT
 // ==============================================
 let client = null;
 let iniciando = false;
 
 async function startBot() {
-    if (iniciando) {
-        console.log(chalk.yellow('⚠️ Ya hay una instancia iniciándose...'));
-        return;
-    }
+    if (iniciando) return;
     iniciando = true;
     
     try {
-        console.log(chalk.cyan('🚀 Iniciando SERVERTUC™ BOT v9.2...'));
+        console.log(chalk.cyan(`🚀 Iniciando ${config.bot.name}...`));
         
-        // Verificar Chrome
         const chromePath = config.paths.chromium;
         if (!fs.existsSync(chromePath)) {
-            console.error(chalk.red(`❌ Chrome no encontrado en: ${chromePath}`));
+            console.error(chalk.red(`❌ Chrome no encontrado`));
             process.exit(1);
         }
         
-        // Preparar directorio de sesión
-        const sessionDir = config.paths.sessions;
-        if (!fs.existsSync(sessionDir)) {
-            fs.mkdirSync(sessionDir, { recursive: true, mode: 0o700 });
-        }
-        
-        // Configurar cron
         setupCleanupCron();
         
-        // Iniciar WPPConnect (VERSIÓN CORREGIDA)
         client = await wppconnect.create({
-            session: 'servertuc-bot',
-            folderNameToken: sessionDir,
+            session: 'sshbot-pro',
+            folderNameToken: config.paths.sessions,
             puppeteerOptions: {
                 executablePath: chromePath,
                 headless: 'new',
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-accelerated-2d-canvas',
-                    '--no-first-run',
-                    '--no-zygote',
-                    '--disable-gpu',
-                    '--disable-web-security',
-                    '--window-size=1024,768'
-                ]
+                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
             },
             disableWelcome: true,
-            updatesLog: false,
             logQR: true,
             autoClose: 0,
             catchQR: (base64Qr, asciiQR) => {
@@ -714,33 +686,23 @@ async function startBot() {
                 console.log(chalk.yellow('══════════════════════════════════════════════════\n'));
                 console.log(asciiQR);
                 console.log(chalk.cyan('\n1. Abre WhatsApp → Menú → WhatsApp Web'));
-                console.log(chalk.cyan('2. Escanea este código QR'));
-                console.log(chalk.cyan('3. El bot estará listo\n'));
-                
-                // Guardar QR
-                const qrImagePath = `/opt/ssh-bot/qr_codes/qr-${Date.now()}.png`;
-                QRCode.toFile(qrImagePath, base64Qr, { width: 300 }, (err) => {
-                    if (!err) console.log(chalk.green(`✅ QR guardado en: ${qrImagePath}`));
-                });
-            },
-            createPathFileToken: false
+                console.log(chalk.cyan('2. Escanea este código QR\n'));
+            }
         });
         
         console.log(chalk.green('✅ WhatsApp conectado exitosamente!'));
         
-        // EVENTOS CORREGIDOS
         client.onStateChange((state) => {
             const states = {
                 'CONNECTED': chalk.green('✅ Conectado'),
                 'PAIRING': chalk.cyan('📱 Emparejando...'),
                 'UNPAIRED': chalk.yellow('📱 Esperando QR...'),
-                'DISCONNECTED': chalk.red('❌ Desconectado'),
-                'SYNCING': chalk.blue('🔄 Sincronizando...')
+                'DISCONNECTED': chalk.red('❌ Desconectado')
             };
             console.log(chalk.blue(`🔁 Estado: ${states[state] || state}`));
             
             if (state === 'CONNECTED') {
-                console.log(chalk.green('\n✅ BOT LISTO PARA RECIBIR MENSAJES'));
+                console.log(chalk.green(`\n✅ ${config.bot.name} LISTO`));
                 console.log(chalk.cyan('💬 Envía "menu" al número del bot\n'));
             }
         });
@@ -755,35 +717,25 @@ async function startBot() {
             }
         });
         
-        client.onLoadingScreen((percent, message) => {
-            if (percent < 100) {
-                console.log(chalk.blue(`🔄 Cargando: ${percent}%`));
-            }
-        });
-        
-        console.log(chalk.green.bold('\n✅ BOT INICIADO CORRECTAMENTE!'));
-        
+        console.log(chalk.green.bold(`\n✅ ${config.bot.name} INICIADO CORRECTAMENTE!`));
         iniciando = false;
         
     } catch (error) {
         console.error(chalk.red('❌ Error iniciando bot:'), error.message);
-        console.error(chalk.red('Detalles:'), error.stack);
-        console.log(chalk.yellow('\n⚠️  Ejecuta: sshbot-control fix'));
         iniciando = false;
         process.exit(1);
     }
 }
 
-// Iniciar
 startBot();
 BOTEOF
 
-echo -e "${GREEN}✅ Bot.js final creado${NC}"
+echo -e "${GREEN}✅ Bot.js creado con menú personalizado${NC}"
 
 # ================================================
-# 5. SCRIPT DE CONTROL MEJORADO
+# SCRIPT DE CONTROL
 # ================================================
-echo -e "\n${CYAN}${BOLD}⚙️ CREANDO SCRIPT DE CONTROL...${NC}"
+echo -e "\n${CYAN}${BOLD}⚙️ Creando script de control...${NC}"
 cat > "/usr/local/bin/sshbot-control" << 'CONTROLEOF'
 #!/bin/bash
 BOLD='\033[1m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; CYAN='\033[0;36m'; NC='\033[0m'
@@ -791,66 +743,45 @@ BOLD='\033[1m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; CYAN=
 case "$1" in
     start)
         echo -e "${GREEN}▶️ Iniciando bot...${NC}"
-        cd /root/ssh-bot
-        pm2 start bot.js --name ssh-bot --time
+        cd /root/sshbot-pro
+        pm2 start bot.js --name sshbot-pro --time
         pm2 save
         ;;
     stop)
         echo -e "${YELLOW}⏹️ Deteniendo...${NC}"
-        pm2 stop ssh-bot
-        pkill -f chrome 2>/dev/null || true
+        pm2 stop sshbot-pro
         ;;
     restart)
         echo -e "${CYAN}🔄 Reiniciando...${NC}"
-        pm2 stop ssh-bot
-        pkill -f chrome 2>/dev/null || true
-        sleep 2
-        cd /root/ssh-bot
-        pm2 start bot.js --name ssh-bot -f --time
-        pm2 save
-        ;;
-    status)
-        pm2 status ssh-bot
+        pm2 restart sshbot-pro
         ;;
     logs)
-        pm2 logs ssh-bot --lines 50
+        pm2 logs sshbot-pro --lines 50
         ;;
-    qr)
-        echo -e "${CYAN}📱 Mostrando QR...${NC}"
-        pm2 restart ssh-bot
-        sleep 3
-        pm2 logs ssh-bot --lines 10
+    clean)
+        echo -e "${YELLOW}🧹 Limpieza rápida...${NC}"
+        pm2 stop sshbot-pro 2>/dev/null
+        rm -rf /root/.wppconnect/sshbot-pro/*
+        echo -e "${GREEN}✅ Sesión limpiada. Reinicia con: sshbot-control restart${NC}"
         ;;
-    fix)
-        echo -e "${YELLOW}🔧 Aplicando fix completo...${NC}"
-        pm2 stop ssh-bot 2>/dev/null || true
-        pkill -f chrome
-        pkill -f chromium
-        rm -rf /root/.wppconnect/servertuc-bot/*
-        mkdir -p /root/.wppconnect/servertuc-bot
-        chmod 700 /root/.wppconnect/servertuc-bot
-        cd /root/ssh-bot
-        pm2 start bot.js --name ssh-bot -f --time
-        pm2 save
-        echo -e "${GREEN}✅ Fix aplicado. Espera el QR con: sshbot-control logs${NC}"
+    config)
+        nano /opt/sshbot-pro/config/config.json
         ;;
     mercadopago)
         echo -e "${CYAN}💰 Configurar MercadoPago:${NC}"
-        read -p "Ingresa tu Access Token: " mp_token
-        if [[ -n "$mp_token" ]]; then
-            jq --arg t "$mp_token" '.mercadopago.access_token = $t | .mercadopago.enabled = true' /opt/ssh-bot/config/config.json > /tmp/config.tmp && mv /tmp/config.tmp /opt/ssh-bot/config/config.json
-            echo -e "${GREEN}✅ Token guardado. Reinicia: sshbot-control restart${NC}"
-        else
-            echo -e "${RED}❌ Token no válido${NC}"
-        fi
-        ;;
-    users)
-        echo -e "${CYAN}👥 Usuarios:${NC}"
-        sqlite3 /opt/ssh-bot/data/users.db "SELECT username, phone, tipo, expires_at, status FROM users ORDER BY created_at DESC LIMIT 10;" -column
+        read -p "Access Token: " token
+        jq --arg t "$token" '.mercadopago.access_token = $t | .mercadopago.enabled = true' /opt/sshbot-pro/config/config.json > /tmp/config.tmp && mv /tmp/config.tmp /opt/sshbot-pro/config/config.json
+        echo -e "${GREEN}✅ Token guardado. Reinicia: sshbot-control restart${NC}"
         ;;
     *)
-        echo -e "${CYAN}${BOLD}SERVERTUC™ BOT v9.2${NC}"
-        echo -e "${GREEN}Comandos:${NC} start, stop, restart, status, logs, qr, fix, mercadopago, users"
+        echo -e "${CYAN}${BOLD}COMANDOS DISPONIBLES:${NC}"
+        echo -e "  ${GREEN}start${NC}     - Iniciar bot"
+        echo -e "  ${GREEN}stop${NC}      - Detener bot"
+        echo -e "  ${GREEN}restart${NC}   - Reiniciar bot"
+        echo -e "  ${GREEN}logs${NC}      - Ver logs"
+        echo -e "  ${GREEN}clean${NC}     - Limpiar sesión"
+        echo -e "  ${GREEN}config${NC}    - Editar configuración"
+        echo -e "  ${GREEN}mercadopago${NC} - Configurar MP"
         ;;
 esac
 CONTROLEOF
@@ -858,51 +789,41 @@ CONTROLEOF
 chmod +x /usr/local/bin/sshbot-control
 
 # ================================================
-# 6. CONFIGURAR CRON Y PM2
+# CONFIGURAR PM2
 # ================================================
-echo -e "\n${CYAN}${BOLD}⏰ CONFIGURANDO CRON...${NC}"
-(crontab -l 2>/dev/null | grep -v "cleanup"; echo "*/15 * * * * /usr/bin/find /opt/ssh-bot/data -name \"*.db\" -exec /usr/bin/sqlite3 {} \"DELETE FROM users WHERE expires_at < datetime('now') AND status = 1; UPDATE users SET status = 0 WHERE expires_at < datetime('now');\" \;") | crontab -
 pm2 startup
 pm2 save
 
 # ================================================
-# 7. INICIAR Y MOSTRAR RESULTADO
+# INICIAR BOT
 # ================================================
-echo -e "\n${CYAN}${BOLD}🚀 INICIANDO BOT...${NC}"
+echo -e "\n${CYAN}${BOLD}🚀 Iniciando bot...${NC}"
 cd "$USER_HOME"
-pm2 start bot.js --name ssh-bot -f --time
+pm2 start bot.js --name sshbot-pro --time
 pm2 save
 
 echo -e "${GREEN}"
 cat << "SUCCESS"
 ╔══════════════════════════════════════════════════════════════╗
-║      🎉 INSTALACIÓN FINAL COMPLETADA - SIN ERRORES! 🎉      ║
+║     🎉 INSTALACIÓN COMPLETADA CON ÉXITO! 🎉                 ║
 ╚══════════════════════════════════════════════════════════════╝
 SUCCESS
 echo -e "${NC}"
 
-echo -e "${YELLOW}📋 RESUMEN FINAL:${NC}"
-echo -e "  ✅ ${GREEN}Menús originales (6 opciones)${NC}"
-echo -e "  ✅ ${GREEN}Planes: 7 opciones (incluye 50 días)${NC}"
-echo -e "  ✅ ${GREEN}Sistema de estados activado${NC}"
-echo -e "  ✅ ${GREEN}API WPPConnect CORREGIDA${NC}"
-echo -e "  ✅ ${GREEN}Contraseña fija: 12345${NC}"
-echo -e "  ✅ ${GREEN}Usuarios terminan en 'j'${NC}"
-echo -e "  ✅ ${GREEN}TODOS LOS ERRORES SOLUCIONADOS${NC}"
+echo -e "${YELLOW}📋 CONFIGURACIÓN:${NC}"
+echo -e "  📝 Nombre del bot: ${GREEN}$BOT_NAME${NC}"
+echo -e "  🔐 Contraseña: ${GREEN}$DEFAULT_PASS${NC}"
+echo -e "  ⏰ Prueba gratis: ${GREEN}$TEST_HOURS horas${NC}"
+echo -e "  🌐 IP Servidor: ${GREEN}$SERVER_IP${NC}"
 
 echo -e "\n${CYAN}📱 VER QR AHORA:${NC}"
 echo -e "  ${GREEN}sshbot-control logs${NC}"
 
-echo -e "\n${PURPLE}⚡ COMANDOS DISPONIBLES:${NC}"
-echo -e "  ${GREEN}sshbot-control logs${NC}   - Ver QR y logs"
-echo -e "  ${GREEN}sshbot-control fix${NC}    - Solucionar errores"
+echo -e "\n${PURPLE}⚡ COMANDOS ÚTILES:${NC}"
+echo -e "  ${GREEN}sshbot-control logs${NC}   - Ver QR"
 echo -e "  ${GREEN}sshbot-control restart${NC} - Reiniciar"
-echo -e "  ${GREEN}sshbot-control mercadopago${NC} - Configurar MP"
+echo -e "  ${GREEN}sshbot-control mercadopago${NC} - Configurar pagos"
 
 echo -e "\n${YELLOW}📢 MOSTRANDO LOGS (ESPERA EL QR)...${NC}"
 sleep 2
-pm2 logs ssh-bot --lines 15 --nostream
-
-echo -e "\n${CYAN}══════════════════════════════════════════════════════════════${NC}"
-echo -e "${BOLD}✅ VERSIÓN 9.2 - TODOS LOS ERRORES CORREGIDOS${NC}"
-echo -e "${CYAN}══════════════════════════════════════════════════════════════${NC}"
+pm2 logs sshbot-pro --lines 15 --nostream
