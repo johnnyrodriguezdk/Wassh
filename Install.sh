@@ -1,6 +1,7 @@
 #!/bin/bash
 # ================================================
 # SERVERTUC™ BOT v10.0 - CONFIGURACIÓN POR MENÚ SSH
+# INSTALADOR COMPLETO - VERSIÓN CORREGIDA
 # ================================================
 
 set -e
@@ -81,10 +82,22 @@ apt-get install -y google-chrome-stable
 
 # Instalar utilidades
 apt-get install -y \
-    git curl wget sqlite3 jq build-essential \
-    python3 python3-pip ffmpeg unzip cron ufw \
-    sshpass openssh-client \
-    net-tools
+    git \
+    curl \
+    wget \
+    sqlite3 \
+    jq \
+    build-essential \
+    python3 \
+    python3-pip \
+    ffmpeg \
+    unzip \
+    cron \
+    ufw \
+    sshpass \
+    openssh-client \
+    net-tools \
+    nano
 
 # Instalar PM2
 npm install -g pm2
@@ -257,8 +270,10 @@ PASSWORD=$2
 DAYS=$3
 SERVER_ID=$4
 
+DB_FILE="/opt/ssh-bot/data/users.db"
+
 # Obtener datos del servidor desde la base de datos
-SERVER_INFO=$(sqlite3 /opt/ssh-bot/data/users.db "SELECT ip, port, user, auth_type, auth_data FROM servers WHERE id=$SERVER_ID AND is_active=1;")
+SERVER_INFO=$(sqlite3 $DB_FILE "SELECT ip, port, user, auth_type, auth_data FROM servers WHERE id=$SERVER_ID AND is_active=1;")
 if [[ -z "$SERVER_INFO" ]]; then
     echo "ERROR: Servidor no encontrado"
     exit 1
@@ -274,10 +289,8 @@ AUTH_DATA=$(echo $SERVER_INFO | cut -d'|' -f5)
 # Calcular fecha de expiración
 if [[ "$DAYS" == "test" ]]; then
     EXPIRE_DATE=$(date -d "+2 hours" +%Y-%m-%d)
-    EXPIRE_DAYS=1
 else
     EXPIRE_DATE=$(date -d "+$DAYS days" +%Y-%m-%d)
-    EXPIRE_DAYS=$DAYS
 fi
 
 # Comando para crear usuario
@@ -288,18 +301,18 @@ chage -E $EXPIRE_DATE $USERNAME 2>/dev/null;
 mkdir -p /home/$USERNAME/.ssh 2>/dev/null;
 chown $USERNAME:$USERNAME /home/$USERNAME/.ssh 2>/dev/null;
 chmod 700 /home/$USERNAME/.ssh 2>/dev/null;
-echo 'Usuario $USERNAME creado correctamente'
+echo 'OK'
 "
 
 # Ejecutar comando remoto según tipo de autenticación
 if [[ "$AUTH_TYPE" == "key" && -f "$AUTH_DATA" ]]; then
-    ssh -i "$AUTH_DATA" -p $SERVER_PORT -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "$COMMAND" 2>/dev/null
+    RESULT=$(ssh -i "$AUTH_DATA" -p $SERVER_PORT -o StrictHostKeyChecking=no -o ConnectTimeout=10 $SERVER_USER@$SERVER_IP "$COMMAND" 2>/dev/null)
 else
-    sshpass -p "$AUTH_DATA" ssh -p $SERVER_PORT -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "$COMMAND" 2>/dev/null
+    RESULT=$(sshpass -p "$AUTH_DATA" ssh -p $SERVER_PORT -o StrictHostKeyChecking=no -o ConnectTimeout=10 $SERVER_USER@$SERVER_IP "$COMMAND" 2>/dev/null)
 fi
 
-if [ $? -eq 0 ]; then
-    echo "Usuario $USERNAME creado en $SERVER_IP (expira: $EXPIRE_DATE)"
+if [[ "$RESULT" == "OK" ]]; then
+    echo "Usuario $USERNAME creado en $SERVER_IP"
     exit 0
 else
     echo "ERROR: No se pudo crear el usuario"
@@ -390,7 +403,7 @@ function getServersList() {
         return "❌ No hay servidores configurados. Contacta al administrador.";
     }
     
-    let list = "🌐 *SERVIDORES DISPONIBLES:*\n\n";
+    let list = "🌐 SERVIDORES DISPONIBLES:\n\n";
     serversCache.forEach((server, index) => {
         list += `${index + 1}) ${server.name}\n   📡 ${server.ip}:${server.port}\n\n`;
     });
@@ -476,6 +489,7 @@ const client = new Client({
 client.on('qr', (qr) => {
     console.log('\n📱 ESCANEA EL QR CON WHATSAPP:\n');
     qrcode.generate(qr, { small: true });
+    console.log('\n');
 });
 
 client.on('ready', () => {
@@ -512,33 +526,33 @@ async function handleClientMessage(phone, msg, message) {
             await message.reply('❌ No hay servidores disponibles. Contacta a soporte.');
             return;
         }
-        await message.reply('🎁 *PRUEBA GRATIS*\n\nResponde con tu *CÓDIGO DE REVENDEDOR* para obtener 2 horas de prueba.');
+        await message.reply('🎁 PRUEBA GRATIS\n\nResponde con tu CÓDIGO DE REVENDEDOR para obtener 2 horas de prueba.');
         userStates.set(phone, { step: 'awaiting_code_test' });
     }
     else if (lowerMsg === '2') {
         await message.reply(
-            '📋 *PLANES DISPONIBLES*\n\n' +
-            '1️⃣ 7 días - 1 conexión\n' +
-            '2️⃣ 15 días - 1 conexión\n' +
-            '3️⃣ 30 días - 1 conexión\n' +
-            '4️⃣ 7 días - 2 conexiones\n' +
-            '5️⃣ 15 días - 2 conexiones\n' +
-            '6️⃣ 30 días - 2 conexiones\n' +
-            '7️⃣ 50 días - 1 conexión\n\n' +
-            '💰 *PARA COMPRAR*\nContacta a un revendedor y pide su código.'
+            '📋 PLANES DISPONIBLES\n\n' +
+            '1) 7 días - 1 conexión\n' +
+            '2) 15 días - 1 conexión\n' +
+            '3) 30 días - 1 conexión\n' +
+            '4) 7 días - 2 conexiones\n' +
+            '5) 15 días - 2 conexiones\n' +
+            '6) 30 días - 2 conexiones\n' +
+            '7) 50 días - 1 conexión\n\n' +
+            '💰 Para comprar, contacta a un revendedor y pide su código.'
         );
     }
     else if (lowerMsg === '3') {
-        await message.reply('📱 *MIS CUENTAS*\n\nPara ver tus cuentas, contacta a tu revendedor.');
+        await message.reply('📱 MIS CUENTAS\n\nPara ver tus cuentas, contacta a tu revendedor.');
     }
     else if (lowerMsg === '4') {
-        await message.reply('💰 *ESTADO DE PAGO*\n\nPara consultar pagos, contacta a tu revendedor.');
+        await message.reply('💰 ESTADO DE PAGO\n\nPara consultar pagos, contacta a tu revendedor.');
     }
     else if (lowerMsg === '5') {
-        await message.reply(`📲 *DESCARGAR APP*\n\n${config.links.app_download}`);
+        await message.reply(`📲 DESCARGAR APP\n\n${config.links.app_download}`);
     }
     else if (lowerMsg === '6') {
-        await message.reply(`🆘 *SOPORTE*\n\n${config.links.support}`);
+        await message.reply(`🆘 SOPORTE\n\n${config.links.support}`);
     }
     else if (state?.step === 'awaiting_code_test') {
         const codeValidation = await validateResellerCode(msg);
@@ -548,9 +562,9 @@ async function handleClientMessage(phone, msg, message) {
                 reseller: codeValidation.resellerPhone,
                 code: msg
             });
-            await message.reply('✅ *CÓDIGO VÁLIDO*\n\n' + getServersList() + '\nElige el *NÚMERO* del servidor:');
+            await message.reply('✅ CÓDIGO VÁLIDO\n\n' + getServersList() + '\nElige el NÚMERO del servidor:');
         } else {
-            await message.reply('❌ *CÓDIGO INVÁLIDO*\n\nEl código ingresado no es válido.');
+            await message.reply('❌ CÓDIGO INVÁLIDO\n\nEl código ingresado no es válido.');
             userStates.delete(phone);
         }
     }
@@ -560,7 +574,7 @@ async function handleClientMessage(phone, msg, message) {
             const username = `test${phone.slice(-4)}j`;
             const password = '12345';
             
-            await message.reply('⏳ *CREANDO CUENTA DE PRUEBA...*\n\nPor favor espera...');
+            await message.reply('⏳ CREANDO CUENTA DE PRUEBA...\n\nPor favor espera...');
             
             try {
                 const result = await createSSHUser(
@@ -569,17 +583,17 @@ async function handleClientMessage(phone, msg, message) {
                 );
                 
                 await message.reply(
-                    `✅ *CUENTA DE PRUEBA CREADA*\n\n` +
-                    `👤 *Usuario:* ${result.username}\n` +
-                    `🔑 *Contraseña:* ${result.password}\n` +
-                    `🌐 *Servidor:* ${result.server}\n` +
-                    `📡 *IP:* ${result.ip}\n` +
-                    `🔌 *Puerto:* ${result.port}\n` +
-                    `⏱️ *Expira:* ${result.expires}\n\n` +
-                    `💡 *Cambia tu contraseña al ingresar.*`
+                    `✅ CUENTA DE PRUEBA CREADA\n\n` +
+                    `👤 Usuario: ${result.username}\n` +
+                    `🔑 Contraseña: ${result.password}\n` +
+                    `🌐 Servidor: ${result.server}\n` +
+                    `📡 IP: ${result.ip}\n` +
+                    `🔌 Puerto: ${result.port}\n` +
+                    `⏱️ Expira: ${result.expires}\n\n` +
+                    `💡 Cambia tu contraseña al ingresar.`
                 );
             } catch (error) {
-                await message.reply('❌ *ERROR*\n\nNo se pudo crear la cuenta. Contacta a soporte.');
+                await message.reply('❌ ERROR\n\nNo se pudo crear la cuenta. Contacta a soporte.');
             }
             
             userStates.delete(phone);
@@ -589,15 +603,15 @@ async function handleClientMessage(phone, msg, message) {
     }
     else {
         await message.reply(
-            '🤖 *BOT SSH - SERVIERTUC*\n\n' +
+            '🤖 BOT SSH - SERVIERTUC\n\n' +
             'Comandos disponibles:\n' +
-            '1️⃣ Prueba gratis (requiere código)\n' +
-            '2️⃣ Ver planes\n' +
-            '3️⃣ Mis cuentas\n' +
-            '4️⃣ Estado de pago\n' +
-            '5️⃣ Descargar APP\n' +
-            '6️⃣ Soporte\n\n' +
-            'Responde el *NÚMERO* de la opción que deseas.'
+            '1) Prueba gratis (requiere código)\n' +
+            '2) Ver planes\n' +
+            '3) Mis cuentas\n' +
+            '4) Estado de pago\n' +
+            '5) Descargar APP\n' +
+            '6) Soporte\n\n' +
+            'Responde el NÚMERO de la opción que deseas.'
         );
     }
 }
@@ -611,12 +625,12 @@ async function handleResellerMessage(phone, msg, message) {
     // Comandos especiales
     if (msg === '!ayuda') {
         await message.reply(
-            '🎫 *COMANDOS PARA REVENDEDORES*\n\n' +
-            '• *!clientes* - Ver mis clientes\n' +
-            '• *!ventas* - Ver estadísticas\n' +
-            '• *!codigo* - Ver mi código\n' +
-            '• *1-7* - Iniciar venta de plan\n' +
-            '• *0* - Cancelar operación'
+            '🎫 COMANDOS PARA REVENDEDORES\n\n' +
+            '• !clientes - Ver mis clientes\n' +
+            '• !ventas - Ver estadísticas\n' +
+            '• !codigo - Ver mi código\n' +
+            '• 1-7 - Iniciar venta de plan\n' +
+            '• 0 - Cancelar operación'
         );
         return;
     }
@@ -624,7 +638,7 @@ async function handleResellerMessage(phone, msg, message) {
     if (msg === '!codigo') {
         db.get("SELECT code FROM authorized_resellers WHERE phone = ?", [phone], (err, row) => {
             if (row) {
-                message.reply(`🎫 *TU CÓDIGO:* \`${row.code}\`\n\nComparte este código con tus clientes.`);
+                message.reply(`🎫 TU CÓDIGO: ${row.code}\n\nComparte este código con tus clientes.`);
             }
         });
         return;
@@ -638,9 +652,9 @@ async function handleResellerMessage(phone, msg, message) {
             ORDER BY created_at DESC LIMIT 10
         `, [phone], (err, rows) => {
             if (rows && rows.length > 0) {
-                let response = '📋 *TUS ÚLTIMOS CLIENTES:*\n\n';
+                let response = '📋 TUS ÚLTIMOS CLIENTES:\n\n';
                 rows.forEach((r, i) => {
-                    response += `${i+1}. *${r.username}*\n   📡 ${r.server_ip}\n   ⏱️ Exp: ${r.expires_at.split('T')[0]}\n\n`;
+                    response += `${i+1}. ${r.username}\n   📡 ${r.server_ip}\n   ⏱️ Exp: ${r.expires_at.split('T')[0]}\n\n`;
                 });
                 message.reply(response);
             } else {
@@ -661,7 +675,7 @@ async function handleResellerMessage(phone, msg, message) {
         `, [phone], (err, row) => {
             if (row) {
                 message.reply(
-                    `📊 *TUS ESTADÍSTICAS*\n\n` +
+                    `📊 TUS ESTADÍSTICAS\n\n` +
                     `📈 Total: ${row.total || 0}\n` +
                     `🎁 Pruebas: ${row.tests || 0}\n` +
                     `💰 Ventas: ${row.users || 0}`
@@ -698,10 +712,10 @@ async function handleResellerMessage(phone, msg, message) {
         });
         
         await message.reply(
-            `🛒 *NUEVA VENTA*\n\n` +
+            `🛒 NUEVA VENTA\n\n` +
             `📦 Plan: ${plan.days} días (${plan.conn} conexión)\n` +
             `💰 Precio: $${discountPrice}\n\n` +
-            `📱 Ingresa el *NÚMERO DE WHATSAPP* del cliente:`
+            `📱 Ingresa el NÚMERO DE WHATSAPP del cliente:`
         );
         return;
     }
@@ -718,7 +732,7 @@ async function handleResellerMessage(phone, msg, message) {
                 await message.reply(
                     '✅ Número registrado.\n\n' +
                     getServersList() +
-                    '\nElige el *NÚMERO* del servidor:'
+                    '\nElige el NÚMERO del servidor:'
                 );
                 break;
                 
@@ -733,12 +747,12 @@ async function handleResellerMessage(phone, msg, message) {
                     
                     const server = serversCache[serverId - 1];
                     await message.reply(
-                        `📡 *SERVIDOR:* ${server.name}\n\n` +
-                        `📋 *RESUMEN:*\n` +
+                        `📡 SERVIDOR: ${server.name}\n\n` +
+                        `📋 RESUMEN:\n` +
                         `• Plan: ${state.plan.days} días\n` +
                         `• Precio: $${state.finalPrice}\n\n` +
-                        `Responde *CONFIRMAR* para crear el usuario\n` +
-                        `o *CANCELAR* para abortar.`
+                        `Responde CONFIRMAR para crear el usuario\n` +
+                        `o CANCELAR para abortar.`
                     );
                 } else {
                     await message.reply('❌ Servidor inválido.');
@@ -747,7 +761,7 @@ async function handleResellerMessage(phone, msg, message) {
                 
             case 'confirm':
                 if (msg.toLowerCase() === 'confirmar') {
-                    await message.reply('⏳ *CREANDO USUARIO...*');
+                    await message.reply('⏳ CREANDO USUARIO...');
                     
                     const username = `user${Date.now().toString().slice(-6)}j`;
                     const password = Math.random().toString(36).slice(-8);
@@ -768,17 +782,17 @@ async function handleResellerMessage(phone, msg, message) {
                         ]);
                         
                         await message.reply(
-                            `✅ *USUARIO CREADO*\n\n` +
-                            `👤 *Usuario:* ${result.username}\n` +
-                            `🔑 *Contraseña:* ${result.password}\n` +
-                            `🌐 *Servidor:* ${result.server}\n` +
-                            `📡 *IP:* ${result.ip}\n` +
-                            `🔌 *Puerto:* ${result.port}\n` +
-                            `⏱️ *Expira:* ${result.expires}`
+                            `✅ USUARIO CREADO\n\n` +
+                            `👤 Usuario: ${result.username}\n` +
+                            `🔑 Contraseña: ${result.password}\n` +
+                            `🌐 Servidor: ${result.server}\n` +
+                            `📡 IP: ${result.ip}\n` +
+                            `🔌 Puerto: ${result.port}\n` +
+                            `⏱️ Expira: ${result.expires}`
                         );
                         
                     } catch (error) {
-                        await message.reply('❌ *ERROR*\n\nNo se pudo crear el usuario.');
+                        await message.reply('❌ ERROR\n\nNo se pudo crear el usuario.');
                     }
                     
                     userStates.delete(phone);
@@ -793,20 +807,20 @@ async function handleResellerMessage(phone, msg, message) {
     
     // Menú principal revendedor
     await message.reply(
-        '🎫 *MENÚ REVENDEDOR*\n\n' +
-        '1️⃣ 7 días (1 conexión)\n' +
-        '2️⃣ 15 días (1 conexión)\n' +
-        '3️⃣ 30 días (1 conexión)\n' +
-        '4️⃣ 7 días (2 conexiones)\n' +
-        '5️⃣ 15 días (2 conexiones)\n' +
-        '6️⃣ 30 días (2 conexiones)\n' +
-        '7️⃣ 50 días (1 conexión)\n\n' +
-        '📌 *Comandos:*\n' +
+        '🎫 MENÚ REVENDEDOR\n\n' +
+        '1) 7 días (1 conexión)\n' +
+        '2) 15 días (1 conexión)\n' +
+        '3) 30 días (1 conexión)\n' +
+        '4) 7 días (2 conexiones)\n' +
+        '5) 15 días (2 conexiones)\n' +
+        '6) 30 días (2 conexiones)\n' +
+        '7) 50 días (1 conexión)\n\n' +
+        '📌 Comandos:\n' +
         '• !clientes - Ver mis clientes\n' +
         '• !ventas - Mis estadísticas\n' +
         '• !codigo - Mi código\n' +
         '• !ayuda - Ayuda\n\n' +
-        'Responde el *NÚMERO* del plan.'
+        'Responde el NÚMERO del plan.'
     );
 }
 
@@ -841,127 +855,127 @@ cd "$INSTALL_DIR"
 npm install
 
 # ================================================
-# CREAR MENÚ SSH (COMANDO sshbot)
+# CREAR MENÚ SSH (COMANDO sshbot) - VERSIÓN CORREGIDA
 # ================================================
 cat > /usr/local/bin/sshbot << 'EOF'
 #!/bin/bash
 # ================================================
-# MENÚ DE ADMINISTRACIÓN SSH BOT
+# MENÚ DE ADMINISTRACIÓN SSH BOT - VERSIÓN CORREGIDA
 # ================================================
 
 DB_FILE="/opt/ssh-bot/data/users.db"
 CONFIG_FILE="/opt/ssh-bot/config/config.json"
 INSTALL_DIR="/opt/ssh-bot"
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-BOLD='\033[1m'
-NC='\033[0m'
-
 # Verificar root
 if [[ $EUID -ne 0 ]]; then
-    echo -e "${RED}❌ Debes ejecutar como root${NC}"
+    echo "❌ Debes ejecutar como root"
     exit 1
 fi
 
-mostrar_banner() {
+mostrar_menu() {
     clear
-    echo -e "${CYAN}${BOLD}"
-    echo "╔════════════════════════════════════════════════════════╗"
-    echo "║         SERVERTUC™ BOT - MENÚ DE ADMINISTRACIÓN       ║"
-    echo "╠════════════════════════════════════════════════════════╣"
-    echo "║                                                        ║"
-    echo "║  ${GREEN}1)${CYAN}  Gestionar Revendedores                          ║"
-    echo "║  ${GREEN}2)${CYAN}  Gestionar Servidores SSH                        ║"
-    echo "║  ${GREEN}3)${CYAN}  Ver Estadísticas                               ║"
-    echo "║  ${GREEN}4)${CYAN}  Ver Logs del Bot                               ║"
-    echo "║  ${GREEN}5)${CYAN}  Reiniciar Bot                                  ║"
-    echo "║  ${GREEN}6)${CYAN}  Ver QR de Conexión                            ║"
-    echo "║  ${GREEN}7)${CYAN}  Configurar Precios                            ║"
-    echo "║  ${GREEN}8)${CYAN}  Hacer Backup                                  ║"
-    echo "║  ${GREEN}9)${CYAN}  Restaurar Backup                              ║"
-    echo "║  ${GREEN}0)${CYAN}  Salir                                          ║"
-    echo "║                                                        ║"
-    echo "╚════════════════════════════════════════════════════════╝"
-    echo -e "${NC}"
+    echo "================================================"
+    echo "     SERVERTUC™ BOT - MENÚ DE ADMINISTRACIÓN    "
+    echo "================================================"
+    echo ""
+    echo " 1) Gestionar Revendedores"
+    echo " 2) Gestionar Servidores SSH"
+    echo " 3) Ver Estadísticas"
+    echo " 4) Ver Logs del Bot"
+    echo " 5) Reiniciar Bot"
+    echo " 6) Ver QR de Conexión"
+    echo " 7) Configurar Precios"
+    echo " 8) Hacer Backup"
+    echo " 9) Restaurar Backup"
+    echo " 0) Salir"
+    echo ""
+    echo "================================================"
 }
 
 gestionar_revendedores() {
     while true; do
         clear
-        echo -e "${BLUE}${BOLD}📱 GESTIÓN DE REVENDEDORES${NC}\n"
-        echo -e "${GREEN}1)${NC} Listar revendedores"
-        echo -e "${GREEN}2)${NC} Agregar revendedor"
-        echo -e "${GREEN}3)${NC} Eliminar revendedor"
-        echo -e "${GREEN}4)${NC} Generar nuevo código"
-        echo -e "${GREEN}5)${NC} Ver detalles de revendedor"
-        echo -e "${GREEN}0)${NC} Volver"
-        
-        read -p $'\nOpción: ' opt
+        echo "================================================"
+        echo "           GESTIÓN DE REVENDEDORES              "
+        echo "================================================"
+        echo ""
+        echo " 1) Listar revendedores"
+        echo " 2) Agregar revendedor"
+        echo " 3) Eliminar revendedor"
+        echo " 4) Generar nuevo código"
+        echo " 5) Ver detalles de revendedor"
+        echo " 0) Volver al menú principal"
+        echo ""
+        echo "================================================"
+        echo ""
+        read -p "Selecciona una opción: " opt
         
         case $opt in
             1)
-                echo -e "\n${YELLOW}REVENDEDORES REGISTRADOS:${NC}\n"
-                sqlite3 "$DB_FILE" -header -column "
-                SELECT 
-                    id,
-                    phone,
-                    code,
-                    total_sales as ventas,
-                    CASE WHEN is_active = 1 THEN '✅' ELSE '❌' END as estado
-                FROM authorized_resellers
-                ORDER BY total_sales DESC;"
-                read -p $'\nPresiona Enter...'
+                echo ""
+                echo "REVENDEDORES REGISTRADOS:"
+                echo "------------------------"
+                sqlite3 "$DB_FILE" "SELECT id, phone, code, total_sales, CASE WHEN is_active = 1 THEN 'ACTIVO' ELSE 'INACTIVO' END FROM authorized_resellers ORDER BY total_sales DESC;"
+                echo ""
+                read -p "Presiona Enter para continuar..."
                 ;;
             2)
-                echo -e "\n${CYAN}NUEVO REVENDEDOR${NC}"
+                echo ""
+                echo "NUEVO REVENDEDOR"
+                echo "---------------"
                 read -p "Número WhatsApp (ej: 5493813414485): " tel
                 # Generar código aleatorio
                 code=$(tr -dc 'A-Z0-9' < /dev/urandom | fold -w 6 | head -n 1)
                 sqlite3 "$DB_FILE" "INSERT INTO authorized_resellers (phone, code) VALUES ('$tel', '$code');"
-                echo -e "${GREEN}✅ Revendedor agregado con código: $code${NC}"
-                # Actualizar cache reiniciando bot
-                pm2 restart ssh-bot
-                read -p "Presiona Enter..."
+                echo "✅ Revendedor agregado con código: $code"
+                pm2 restart ssh-bot > /dev/null 2>&1
+                echo ""
+                read -p "Presiona Enter para continuar..."
                 ;;
             3)
-                echo -e "\n${RED}ELIMINAR REVENDEDOR${NC}"
+                echo ""
+                echo "ELIMINAR REVENDEDOR"
+                echo "------------------"
                 read -p "ID o número a eliminar: " id
                 sqlite3 "$DB_FILE" "UPDATE authorized_resellers SET is_active=0 WHERE phone='$id' OR id='$id';"
-                echo -e "${RED}✅ Revendedor desactivado${NC}"
-                pm2 restart ssh-bot
-                read -p "Presiona Enter..."
+                echo "✅ Revendedor desactivado"
+                pm2 restart ssh-bot > /dev/null 2>&1
+                echo ""
+                read -p "Presiona Enter para continuar..."
                 ;;
             4)
+                echo ""
+                echo "GENERAR NUEVO CÓDIGO"
+                echo "--------------------"
                 read -p "Número del revendedor: " tel
                 newcode=$(tr -dc 'A-Z0-9' < /dev/urandom | fold -w 6 | head -n 1)
                 sqlite3 "$DB_FILE" "UPDATE authorized_resellers SET code='$newcode' WHERE phone='$tel';"
-                echo -e "${GREEN}✅ Nuevo código: $newcode${NC}"
-                pm2 restart ssh-bot
-                read -p "Presiona Enter..."
+                echo "✅ Nuevo código: $newcode"
+                pm2 restart ssh-bot > /dev/null 2>&1
+                echo ""
+                read -p "Presiona Enter para continuar..."
                 ;;
             5)
+                echo ""
                 read -p "Número del revendedor: " tel
-                echo -e "\n${CYAN}DETALLES:${NC}\n"
-                sqlite3 "$DB_FILE" "
-                SELECT 
-                    phone,
-                    code,
-                    total_sales,
-                    created_at
-                FROM authorized_resellers 
-                WHERE phone='$tel';
-                "
-                echo -e "\n${YELLOW}ÚLTIMAS VENTAS:${NC}"
+                echo ""
+                echo "DETALLES DEL REVENDEDOR"
+                echo "-----------------------"
+                sqlite3 "$DB_FILE" "SELECT phone, code, total_sales, created_at FROM authorized_resellers WHERE phone='$tel';"
+                echo ""
+                echo "ÚLTIMAS VENTAS:"
+                echo "--------------"
                 sqlite3 "$DB_FILE" "SELECT username, server_ip, created_at FROM users WHERE created_by_reseller='$tel' ORDER BY created_at DESC LIMIT 5;"
-                read -p "Presiona Enter..."
+                echo ""
+                read -p "Presiona Enter para continuar..."
                 ;;
             0)
                 return
+                ;;
+            *)
+                echo "Opción no válida"
+                sleep 2
                 ;;
         esac
     done
@@ -970,32 +984,33 @@ gestionar_revendedores() {
 gestionar_servidores() {
     while true; do
         clear
-        echo -e "${BLUE}${BOLD}🌐 GESTIÓN DE SERVIDORES SSH${NC}\n"
-        echo -e "${GREEN}1)${NC} Listar servidores"
-        echo -e "${GREEN}2)${NC} Agregar servidor"
-        echo -e "${GREEN}3)${NC} Eliminar servidor"
-        echo -e "${GREEN}4)${NC} Probar conexión"
-        echo -e "${GREEN}0)${NC} Volver"
-        
-        read -p $'\nOpción: ' opt
+        echo "================================================"
+        echo "           GESTIÓN DE SERVIDORES SSH           "
+        echo "================================================"
+        echo ""
+        echo " 1) Listar servidores"
+        echo " 2) Agregar servidor"
+        echo " 3) Eliminar servidor"
+        echo " 4) Probar conexión"
+        echo " 0) Volver al menú principal"
+        echo ""
+        echo "================================================"
+        echo ""
+        read -p "Selecciona una opción: " opt
         
         case $opt in
             1)
-                echo -e "\n${YELLOW}SERVIDORES CONFIGURADOS:${NC}\n"
-                sqlite3 "$DB_FILE" -header -column "
-                SELECT 
-                    id,
-                    name,
-                    ip,
-                    port,
-                    user,
-                    CASE WHEN is_active = 1 THEN '✅' ELSE '❌' END as estado
-                FROM servers
-                ORDER BY id;"
-                read -p $'\nPresiona Enter...'
+                echo ""
+                echo "SERVIDORES CONFIGURADOS:"
+                echo "-----------------------"
+                sqlite3 "$DB_FILE" "SELECT id, name, ip, port, user, CASE WHEN is_active = 1 THEN 'ACTIVO' ELSE 'INACTIVO' END FROM servers ORDER BY id;"
+                echo ""
+                read -p "Presiona Enter para continuar..."
                 ;;
             2)
-                echo -e "\n${CYAN}NUEVO SERVIDOR SSH${NC}"
+                echo ""
+                echo "NUEVO SERVIDOR SSH"
+                echo "------------------"
                 read -p "Nombre del servidor: " name
                 read -p "IP del servidor: " ip
                 read -p "Puerto SSH [22]: " port
@@ -1005,36 +1020,50 @@ gestionar_servidores() {
                 read -p "Contraseña: " pass
                 
                 sqlite3 "$DB_FILE" "INSERT INTO servers (name, ip, port, user, auth_type, auth_data) VALUES ('$name', '$ip', $port, '$user', 'password', '$pass');"
-                echo -e "${GREEN}✅ Servidor agregado${NC}"
-                
-                # Actualizar cache reiniciando bot
-                pm2 restart ssh-bot
-                read -p "Presiona Enter..."
+                echo "✅ Servidor agregado"
+                pm2 restart ssh-bot > /dev/null 2>&1
+                echo ""
+                read -p "Presiona Enter para continuar..."
                 ;;
             3)
-                echo -e "\n${RED}ELIMINAR SERVIDOR${NC}"
+                echo ""
+                echo "ELIMINAR SERVIDOR"
+                echo "----------------"
                 read -p "ID del servidor: " id
                 sqlite3 "$DB_FILE" "UPDATE servers SET is_active=0 WHERE id=$id;"
-                echo -e "${RED}✅ Servidor desactivado${NC}"
-                pm2 restart ssh-bot
-                read -p "Presiona Enter..."
+                echo "✅ Servidor desactivado"
+                pm2 restart ssh-bot > /dev/null 2>&1
+                echo ""
+                read -p "Presiona Enter para continuar..."
                 ;;
             4)
+                echo ""
                 read -p "ID del servidor a probar: " id
-                echo -e "\n${YELLOW}Probando conexión...${NC}"
-                server_info=$(sqlite3 "$DB_FILE" "SELECT ip, port, user, auth_data FROM servers WHERE id=$id;")
-                IFS='|' read -r ip port user pass <<< "$server_info"
-                
-                sshpass -p "$pass" ssh -p $port -o ConnectTimeout=5 $user@$ip "echo '✅ Conexión exitosa'" 2>/dev/null
-                if [ $? -eq 0 ]; then
-                    echo -e "${GREEN}✅ Servidor accesible${NC}"
+                echo ""
+                echo "PROBANDO CONEXIÓN..."
+                echo "-------------------"
+                server_info=$(sqlite3 "$DB_FILE" "SELECT ip, port, user, auth_data FROM servers WHERE id=$id AND is_active=1;")
+                if [ -z "$server_info" ]; then
+                    echo "❌ Servidor no encontrado o inactivo"
                 else
-                    echo -e "${RED}❌ No se pudo conectar${NC}"
+                    IFS='|' read -r ip port user pass <<< "$server_info"
+                    
+                    sshpass -p "$pass" ssh -p $port -o ConnectTimeout=5 -o StrictHostKeyChecking=no $user@$ip "echo '✅ Conexión exitosa'" 2>/dev/null
+                    if [ $? -eq 0 ]; then
+                        echo "✅ Servidor accesible"
+                    else
+                        echo "❌ No se pudo conectar al servidor"
+                    fi
                 fi
-                read -p "Presiona Enter..."
+                echo ""
+                read -p "Presiona Enter para continuar..."
                 ;;
             0)
                 return
+                ;;
+            *)
+                echo "Opción no válida"
+                sleep 2
                 ;;
         esac
     done
@@ -1042,7 +1071,10 @@ gestionar_servidores() {
 
 ver_estadisticas() {
     clear
-    echo -e "${BLUE}${BOLD}📊 ESTADÍSTICAS GENERALES${NC}\n"
+    echo "================================================"
+    echo "           ESTADÍSTICAS GENERALES              "
+    echo "================================================"
+    echo ""
     
     total_rev=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM authorized_resellers WHERE is_active=1;")
     total_serv=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM servers WHERE is_active=1;")
@@ -1050,21 +1082,25 @@ ver_estadisticas() {
     total_tests=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM users WHERE tipo='test';")
     total_paid=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM users WHERE tipo='user';")
     
-    echo -e "${GREEN}📱 Revendedores activos:${NC} $total_rev"
-    echo -e "${GREEN}🌐 Servidores activos:${NC} $total_serv"
-    echo -e "${GREEN}👥 Total usuarios:${NC} $total_users"
-    echo -e "${GREEN}🎁 Pruebas gratis:${NC} $total_tests"
-    echo -e "${GREEN}💰 Usuarios pagos:${NC} $total_paid"
+    echo "📱 Revendedores activos: $total_rev"
+    echo "🌐 Servidores activos: $total_serv"
+    echo "👥 Total usuarios creados: $total_users"
+    echo "🎁 Pruebas gratis: $total_tests"
+    echo "💰 Usuarios pagos: $total_paid"
     
-    echo -e "\n${YELLOW}ÚLTIMOS USUARIOS CREADOS:${NC}\n"
+    echo ""
+    echo "ÚLTIMOS USUARIOS CREADOS:"
+    echo "-------------------------"
     sqlite3 "$DB_FILE" "SELECT username, server_ip, created_at FROM users ORDER BY created_at DESC LIMIT 5;"
     
-    read -p $'\nPresiona Enter...'
+    echo ""
+    read -p "Presiona Enter para continuar..."
 }
 
 # Menú principal
 while true; do
-    mostrar_banner
+    mostrar_menu
+    echo ""
     read -p "Selecciona una opción: " opcion
     
     case $opcion in
@@ -1073,44 +1109,83 @@ while true; do
         3) ver_estadisticas ;;
         4) 
             clear
-            echo -e "${YELLOW}LOGS DEL BOT:${NC}\n"
-            pm2 logs ssh-bot --lines 20 --nostream
-            read -p "Presiona Enter..."
+            echo "================================================"
+            echo "               LOGS DEL BOT                    "
+            echo "================================================"
+            echo ""
+            pm2 logs ssh-bot --lines 30 --nostream
+            echo ""
+            read -p "Presiona Enter para continuar..."
             ;;
         5)
+            echo ""
+            echo "Reiniciando bot..."
             pm2 restart ssh-bot
-            echo -e "${GREEN}✅ Bot reiniciado${NC}"
+            echo "✅ Bot reiniciado"
             sleep 2
             ;;
         6)
             clear
-            echo -e "${YELLOW}ESCANEA ESTE QR CON WHATSAPP:${NC}\n"
-            pm2 logs ssh-bot --lines 50 --nostream | grep -A 20 "QR" || echo "Esperando QR..."
-            read -p $'\nPresiona Enter...'
+            echo "================================================"
+            echo "           QR DE CONEXIÓN WHATSAPP             "
+            echo "================================================"
+            echo ""
+            echo "Buscando QR en los logs..."
+            echo ""
+            pm2 logs ssh-bot --lines 50 --nostream | grep -A 15 "QR" || echo "No se encontró QR. Espera a que el bot genere uno."
+            echo ""
+            read -p "Presiona Enter para continuar..."
             ;;
         7)
             nano "$CONFIG_FILE"
+            echo ""
+            echo "Reiniciando bot para aplicar cambios..."
             pm2 restart ssh-bot
+            echo "✅ Bot reiniciado"
+            sleep 2
             ;;
         8)
+            echo ""
+            echo "CREANDO BACKUP..."
+            echo "----------------"
+            mkdir -p /opt/ssh-bot/backups
             backup_file="/opt/ssh-bot/backups/backup_$(date +%Y%m%d_%H%M%S).tar.gz"
-            tar -czf "$backup_file" -C /opt/ssh-bot data config
-            echo -e "${GREEN}✅ Backup creado: $backup_file${NC}"
-            read -p "Presiona Enter..."
+            tar -czf "$backup_file" -C /opt/ssh-bot data config 2>/dev/null
+            echo "✅ Backup creado: $backup_file"
+            echo ""
+            read -p "Presiona Enter para continuar..."
             ;;
         9)
-            ls -lh /opt/ssh-bot/backups/
-            read -p "Nombre del backup a restaurar: " backup
+            echo ""
+            echo "BACKUPS DISPONIBLES:"
+            echo "-------------------"
+            ls -lh /opt/ssh-bot/backups/ | grep tar.gz
+            echo ""
+            read -p "Nombre del archivo de backup a restaurar: " backup
             if [ -f "/opt/ssh-bot/backups/$backup" ]; then
-                tar -xzf "/opt/ssh-bot/backups/$backup" -C /opt/ssh-bot
+                echo "Restaurando backup..."
+                tar -xzf "/opt/ssh-bot/backups/$backup" -C /opt/ssh-bot 2>/dev/null
+                echo "✅ Backup restaurado"
+                echo "Reiniciando bot..."
                 pm2 restart ssh-bot
-                echo -e "${GREEN}✅ Backup restaurado${NC}"
+                echo "✅ Bot reiniciado"
+            else
+                echo "❌ Archivo no encontrado"
             fi
-            read -p "Presiona Enter..."
+            echo ""
+            read -p "Presiona Enter para continuar..."
             ;;
         0)
-            echo -e "\n${GREEN}¡Hasta luego!${NC}"
+            clear
+            echo "================================================"
+            echo "              ¡HASTA LUEGO!                    "
+            echo "================================================"
+            echo ""
             exit 0
+            ;;
+        *)
+            echo "❌ Opción no válida"
+            sleep 2
             ;;
     esac
 done
@@ -1130,30 +1205,31 @@ pm2 startup
 # MENSAJE FINAL
 # ================================================
 clear
-echo -e "${GREEN}${BOLD}"
-echo "╔════════════════════════════════════════════════════════╗"
-echo "║         ✅ INSTALACIÓN COMPLETADA                     ║"
-echo "╠════════════════════════════════════════════════════════╣"
-echo "║                                                        ║"
-echo "║  📱 COMANDO PRINCIPAL:                                 ║"
-echo "║  ${YELLOW}sshbot${GREEN}                                            ║"
-echo "║                                                        ║"
-echo "║  🔧 PRÓXIMOS PASOS:                                    ║"
-echo "║  1. Ejecuta ${YELLOW}sshbot${GREEN} para configurar                 ║"
-echo "║  2. Agrega servidores SSH (opción 2)                   ║"
-echo "║  3. Agrega revendedores (opción 1)                      ║"
-echo "║  4. Escanea el QR (opción 6)                           ║"
-echo "║                                                        ║"
-echo "║  📁 RUTAS IMPORTANTES:                                 ║"
-echo "║  • Bot: /opt/ssh-bot/                                  ║"
-echo "║  • Logs: pm2 logs ssh-bot                              ║"
-echo "║                                                        ║"
-echo "╚════════════════════════════════════════════════════════╝"
-echo -e "${NC}"
+echo "================================================"
+echo "         ✅ INSTALACIÓN COMPLETADA              "
+echo "================================================"
+echo ""
+echo "  📱 COMANDO PRINCIPAL:"
+echo "  sshbot"
+echo ""
+echo "  🔧 PRÓXIMOS PASOS:"
+echo "  1. Ejecuta 'sshbot' para configurar"
+echo "  2. Agrega servidores SSH (opción 2)"
+echo "  3. Agrega revendedores (opción 1)"
+echo "  4. Escanea el QR (opción 6)"
+echo ""
+echo "  📁 RUTAS IMPORTANTES:"
+echo "  • Bot: /opt/ssh-bot/"
+echo "  • Logs: pm2 logs ssh-bot"
+echo ""
+echo "================================================"
 
 # Mostrar QR si está disponible
-echo -e "\n${YELLOW}📱 ESPERANDO QR... (puede tomar unos segundos)${NC}"
+echo ""
+echo "📱 ESPERANDO QR... (puede tomar unos segundos)"
 sleep 5
-pm2 logs ssh-bot --lines 20 --nostream | grep -A 10 "QR" || echo -e "${CYAN}Ejecuta 'sshbot' y opción 6 para ver el QR${NC}"
+pm2 logs ssh-bot --lines 20 --nostream | grep -A 10 "QR" || echo "Ejecuta 'sshbot' y opción 6 para ver el QR"
+echo ""
+echo "================================================"
 
 exit 0
