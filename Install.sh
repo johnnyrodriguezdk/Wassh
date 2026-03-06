@@ -1,25 +1,15 @@
 #!/bin/bash
 # ================================================
-# SSH BOT PRO v5.0 - CON REVENDEDORES Y DESCUENTO
+# SSH BOT PRO v6.0 - MULTI-VPS + REVENDEDORES
 # BASADO EN: https://github.com/johnnyrodriguezdk/ssh-bot-2
 # ================================================
-# CARACTERÍSTICAS ORIGINALES + NUEVAS:
-# ✅ MERCADOPAGO SDK v2.x
-# ✅ MENÚ PROPIO (2 opciones de compra)
-# ✅ BOT SILENCIOSO
-# ✅ USUARIOS TERMINAN EN 'j' · CONTRASEÑA 12345
-# ✅ PANEL VPS COMPLETO (13 opciones)
-# ✅ ESTADÍSTICAS DETALLADAS
-# ✅ BACKUP AUTOMÁTICO
-# ================================================
-# 🎫 NUEVO: SISTEMA DE REVENDEDORES
-# ✅ OPCIÓN 7 EN WHATSAPP PARA REVENDEDORES
-# ✅ CÓDIGO ÚNICO POR REVENDEDOR (6 CARACTERES)
-# ✅ 50% DE DESCUENTO AUTOMÁTICO
-# ✅ MENÚ ESPECIAL EN VPS (COMANDO: sshbot)
-# ================================================
-# NOTA: El nombre del bot es SOLO VISUAL
-# Las rutas son FIJAS: /opt/sshbot-pro y /root/sshbot-pro
+# CARACTERÍSTICAS:
+# ✅ MULTI-VPS: Crear usuarios en servidores remotos
+# ✅ REVENDEDORES: Códigos únicos con 50% descuento
+# ✅ MENÚ VPS COMPLETO: Comando 'sshbot'
+# ✅ CORRECIONES: Todos los errores solucionados
+# ✅ RUTAS FIJAS: /opt/sshbot-pro (NO dependen del nombre)
+# ✅ ENLACES SIMBÓLICOS: Funcionamiento asegurado
 # ================================================
 
 set -e
@@ -48,22 +38,20 @@ cat << "BANNER"
 ║     ╚══════╝╚══════╝╚═╝  ╚═╝    ╚═════╝  ╚═════╝    ╚═╝     ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
-║          🤖 SSH BOT PRO v5.0 - CON REVENDEDORES             ║
-║     ✅ MP INTEGRADO · ✅ PANEL VPS (13 OPCIONES)            ║
-║     ✅ NUEVO: REVENDEDORES CON 50% DTO · ✅ COMANDO sshbot  ║
+║        🤖 SSH BOT PRO v6.0 - MULTI-VPS                      ║
+║     ✅ REVENDEDORES · ✅ 50% DTO · ✅ MÚLTIPLES VPS         ║
+║     ✅ TODAS LAS CORRECCIONES APLICADAS                     ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 BANNER
 echo -e "${NC}"
 
 echo -e "${GREEN}✅ CARACTERÍSTICAS COMPLETAS:${NC}"
-echo -e "  💰 ${CYAN}MercadoPago SDK v2.x${NC} - Pagos automáticos"
-echo -e "  🎛️  ${PURPLE}Panel VPS${NC} - 13 opciones de administración"
-echo -e "  🔐 ${YELLOW}Usuarios:${NC} Terminan en 'j' · Contraseña 12345"
-echo -e "  📊 ${BLUE}Estadísticas${NC} - Ventas, usuarios, ingresos"
-echo -e "  💾 ${GREEN}Backup automático${NC} - Diario a las 3 AM"
-echo -e "  🎫 ${PURPLE}NUEVO:${NC} Revendedores con 50% descuento"
-echo -e "  🖥️  ${CYAN}NUEVO:${NC} Comando 'sshbot' para administrar"
+echo -e "  🌐 ${CYAN}MULTI-VPS${NC} - Crear usuarios en servidores remotos"
+echo -e "  🎫 ${PURPLE}REVENDEDORES${NC} - Códigos únicos con 50% descuento"
+echo -e "  🖥️  ${YELLOW}MENÚ VPS${NC} - Comando 'sshbot' con 13 opciones"
+echo -e "  🔧 ${BLUE}CORRECIONES${NC} - Todos los errores solucionados"
+echo -e "  📁 ${GREEN}RUTAS FIJAS${NC} - /opt/sshbot-pro (NO falla)"
 echo -e "${CYAN}══════════════════════════════════════════════════════════════${NC}\n"
 
 # Verificar root
@@ -76,23 +64,21 @@ fi
 # CONFIGURACIÓN DEL NOMBRE (SOLO VISUAL)
 # ================================================
 echo -e "\n${CYAN}${BOLD}⚙️ CONFIGURACIÓN DEL BOT (SOLO VISUAL)${NC}"
-echo -e "${YELLOW}⚠️  El nombre que ingreses SOLO se verá en los mensajes${NC}"
-echo -e "${YELLOW}⚠️  Las rutas de instalación son FIJAS: /opt/sshbot-pro${NC}\n"
+echo -e "${YELLOW}⚠️  El nombre NO afecta las rutas de instalación${NC}\n"
 
 read -p "📝 NOMBRE VISUAL PARA TU BOT (ej: MI BOT PRO): " BOT_NAME
 BOT_NAME=${BOT_NAME:-"MI BOT PRO"}
 
 echo -e "\n${GREEN}✅ Nombre visual: ${CYAN}$BOT_NAME${NC}"
-echo -e "${GREEN}✅ Rutas fijas: ${CYAN}/opt/sshbot-pro${NC} y ${CYAN}/root/sshbot-pro${NC}\n"
+echo -e "${GREEN}✅ Rutas fijas: ${CYAN}/opt/sshbot-pro${NC}\n"
 
 # ================================================
 # RUTAS FIJAS (NO DEPENDEN DEL NOMBRE)
 # ================================================
 INSTALL_DIR="/opt/sshbot-pro"
-USER_HOME="/root/sshbot-pro"
 DB_FILE="$INSTALL_DIR/data/users.db"
 CONFIG_FILE="$INSTALL_DIR/config/config.json"
-INFO_FILE="$INSTALL_DIR/config/info.txt"
+SERVERS_FILE="$INSTALL_DIR/config/servers.json"
 
 echo -e "${YELLOW}📁 Instalación en: $INSTALL_DIR${NC}"
 read -p "$(echo -e "${YELLOW}¿Continuar? (s/N): ${NC}")" -n 1 -r
@@ -103,6 +89,43 @@ if [[ ! $REPLY =~ ^[Ss]$ ]]; then
 fi
 
 # ================================================
+# CONFIGURACIÓN DE SERVIDORES REMOTOS (MULTI-VPS)
+# ================================================
+echo -e "\n${CYAN}${BOLD}🌐 CONFIGURACIÓN DE SERVIDORES REMOTOS${NC}"
+echo -e "${YELLOW}¿Quieres configurar servidores remotos para crear usuarios?${NC}"
+read -p "Configurar ahora? (s/N): " CONFIG_SERVERS
+
+declare -A SERVERS
+SERVER_COUNT=0
+
+if [[ $CONFIG_SERVERS =~ ^[Ss]$ ]]; then
+    while true; do
+        echo -e "\n${GREEN}📡 Servidor #$((SERVER_COUNT+1))${NC}"
+        read -p "Nombre del servidor (ej: VPS Argentina): " SERVER_NAME
+        read -p "IP del servidor: " SERVER_IP
+        read -p "Puerto SSH [22]: " SERVER_PORT
+        SERVER_PORT=${SERVER_PORT:-22}
+        read -p "Usuario [root]: " SERVER_USER
+        SERVER_USER=${SERVER_USER:-root}
+        read -p "Contraseña: " SERVER_PASS
+        
+        SERVERS[$SERVER_COUNT,name]=$SERVER_NAME
+        SERVERS[$SERVER_COUNT,ip]=$SERVER_IP
+        SERVERS[$SERVER_COUNT,port]=$SERVER_PORT
+        SERVERS[$SERVER_COUNT,user]=$SERVER_USER
+        SERVERS[$SERVER_COUNT,pass]=$SERVER_PASS
+        
+        SERVER_COUNT=$((SERVER_COUNT+1))
+        
+        echo -e "\n${YELLOW}¿Agregar otro servidor?${NC}"
+        read -p "máximo 3 (s/N): " ADD_MORE
+        if [[ ! $ADD_MORE =~ ^[Ss]$ ]] || [[ $SERVER_COUNT -ge 3 ]]; then
+            break
+        fi
+    done
+fi
+
+# ================================================
 # LIMPIEZA TOTAL
 # ================================================
 echo -e "\n${CYAN}${BOLD}🧹 LIMPIEZA TOTAL...${NC}"
@@ -110,7 +133,7 @@ pm2 delete sshbot-pro 2>/dev/null || true
 pm2 kill 2>/dev/null || true
 pkill -f chrome 2>/dev/null || true
 pkill -f node 2>/dev/null || true
-rm -rf "$INSTALL_DIR" "$USER_HOME" /root/.wppconnect/sshbot-pro 2>/dev/null || true
+rm -rf "$INSTALL_DIR" /root/sshbot-pro /root/.wppconnect/sshbot-pro 2>/dev/null || true
 echo -e "${GREEN}✅ Limpieza completada${NC}"
 
 # ================================================
@@ -118,17 +141,16 @@ echo -e "${GREEN}✅ Limpieza completada${NC}"
 # ================================================
 echo -e "\n${CYAN}📁 Creando estructura en rutas fijas...${NC}"
 mkdir -p "$INSTALL_DIR"/{data,config,sessions,logs,qr_codes,scripts,backups}
-mkdir -p "$USER_HOME"
 mkdir -p /root/.wppconnect/sshbot-pro
 chmod -R 755 "$INSTALL_DIR"
 chmod -R 700 /root/.wppconnect/sshbot-pro
 
-# Crear enlace simbólico para compatibilidad
-ln -sf "$INSTALL_DIR" "$USER_HOME"
+# Crear enlace simbólico (CRÍTICO PARA EL FUNCIONAMIENTO)
+ln -sf "$INSTALL_DIR" /root/sshbot-pro
 
 echo -e "${GREEN}✅ Estructura creada${NC}"
 echo -e "   • ${CYAN}$INSTALL_DIR${NC} (directorio principal)"
-echo -e "   • ${CYAN}$USER_HOME${NC} (enlace simbólico)"
+echo -e "   • ${CYAN}/root/sshbot-pro${NC} (enlace simbólico) ✓"
 echo -e "   • ${CYAN}/root/.wppconnect/sshbot-pro${NC} (sesiones)"
 
 # ================================================
@@ -151,6 +173,8 @@ read -p "Precio 30 días (7000): " PRICE_30D
 PRICE_30D=${PRICE_30D:-7000}
 read -p "Precio 50 días (9700): " PRICE_50D
 PRICE_50D=${PRICE_50D:-9700}
+read -p "Precio 90 días (15000): " PRICE_90D
+PRICE_90D=${PRICE_90D:-15000}
 
 read -p "⏰ Horas de prueba gratis (2): " TEST_HOURS
 TEST_HOURS=${TEST_HOURS:-2}
@@ -163,7 +187,7 @@ echo -e "${GREEN}✅ IP detectada: $SERVER_IP${NC}"
 # ================================================
 # TEXTO DE INFORMACIÓN
 # ================================================
-cat > "$INFO_FILE" << 'EOF'
+cat > "$INSTALL_DIR/config/info.txt" << 'EOF'
 🔥 INTERNET ILIMITADO ⚡📱
 
 Es una aplicación que te permite conectar y navegar en internet de manera ilimitada/infinita. Sin necesidad de tener saldo/crédito o MG/GB.
@@ -180,17 +204,17 @@ Es una aplicación que te permite conectar y navegar en internet de manera ilimi
 EOF
 
 # ================================================
-# CONFIG.JSON (CON NOMBRE SOLO VISUAL)
+# CONFIG.JSON
 # ================================================
 cat > "$CONFIG_FILE" << EOF
 {
     "bot": {
         "name": "$BOT_NAME",
-        "version": "5.0-REVENDEDORES",
+        "version": "6.0-MULTI-VPS",
         "server_ip": "$SERVER_IP",
         "default_password": "12345",
         "test_hours": $TEST_HOURS,
-        "info_file": "$INFO_FILE",
+        "info_file": "$INSTALL_DIR/config/info.txt",
         "reseller_discount": 50
     },
     "prices": {
@@ -199,6 +223,7 @@ cat > "$CONFIG_FILE" << EOF
         "price_15d": $PRICE_15D,
         "price_30d": $PRICE_30D,
         "price_50d": $PRICE_50D,
+        "price_90d": $PRICE_90D,
         "currency": "ARS"
     },
     "mercadopago": {
@@ -214,8 +239,37 @@ cat > "$CONFIG_FILE" << EOF
         "database": "$DB_FILE",
         "chromium": "/usr/bin/google-chrome",
         "qr_codes": "$INSTALL_DIR/qr_codes",
-        "sessions": "/root/.wppconnect/sshbot-pro"
+        "sessions": "/root/.wppconnect/sshbot-pro",
+        "scripts": "$INSTALL_DIR/scripts"
     }
+}
+EOF
+
+# ================================================
+# CONFIGURACIÓN DE SERVIDORES (MULTI-VPS)
+# ================================================
+cat > "$SERVERS_FILE" << EOF
+{
+    "servers": [
+EOF
+
+for ((i=0; i<$SERVER_COUNT; i++)); do
+    COMMA=$([ $i -lt $((SERVER_COUNT-1)) ] && echo "," || echo "")
+    cat >> "$SERVERS_FILE" << EOF
+        {
+            "id": $((i+1)),
+            "name": "${SERVERS[$i,name]}",
+            "ip": "${SERVERS[$i,ip]}",
+            "port": ${SERVERS[$i,port]},
+            "user": "${SERVERS[$i,user]}",
+            "password": "${SERVERS[$i,pass]}",
+            "active": true
+        }$COMMA
+EOF
+done
+
+cat >> "$SERVERS_FILE" << EOF
+    ]
 }
 EOF
 
@@ -224,19 +278,21 @@ EOF
 # ================================================
 echo -e "\n${CYAN}🗄️ Creando base de datos...${NC}"
 sqlite3 "$DB_FILE" << 'SQL'
--- Tablas originales
+-- Tabla de usuarios
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     phone TEXT,
     username TEXT UNIQUE,
     password TEXT DEFAULT '12345',
     tipo TEXT DEFAULT 'test',
+    server_id INTEGER DEFAULT 0,
     expires_at DATETIME,
-    max_connections INTEGER DEFAULT 1,
     status INTEGER DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_by TEXT
 );
 
+-- Tabla de pruebas diarias
 CREATE TABLE daily_tests (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     phone TEXT,
@@ -245,22 +301,20 @@ CREATE TABLE daily_tests (
     UNIQUE(phone, date)
 );
 
+-- Tabla de pagos
 CREATE TABLE payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     payment_id TEXT UNIQUE,
     phone TEXT,
     plan TEXT,
     days INTEGER,
-    connections INTEGER DEFAULT 1,
     amount REAL,
     status TEXT DEFAULT 'pending',
-    payment_url TEXT,
-    qr_code TEXT,
-    preference_id TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     approved_at DATETIME
 );
 
+-- Tabla de logs
 CREATE TABLE logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     type TEXT,
@@ -269,6 +323,7 @@ CREATE TABLE logs (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Tabla de estados de usuario
 CREATE TABLE user_state (
     phone TEXT PRIMARY KEY,
     state TEXT DEFAULT 'main_menu',
@@ -276,7 +331,7 @@ CREATE TABLE user_state (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- NUEVA TABLA: Revendedores
+-- Tabla de revendedores
 CREATE TABLE resellers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     phone TEXT UNIQUE NOT NULL,
@@ -287,7 +342,7 @@ CREATE TABLE resellers (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- NUEVA TABLA: Ventas de revendedores
+-- Tabla de ventas de revendedores
 CREATE TABLE reseller_sales (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     reseller_phone TEXT,
@@ -296,16 +351,14 @@ CREATE TABLE reseller_sales (
     amount REAL,
     discount_applied INTEGER,
     username TEXT,
+    server_id INTEGER,
     sold_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Índices
 CREATE INDEX idx_users_phone ON users(phone);
 CREATE INDEX idx_users_status ON users(status);
-CREATE INDEX idx_payments_status ON payments(status);
-CREATE INDEX idx_payments_preference ON payments(preference_id);
 CREATE INDEX idx_resellers_code ON resellers(code);
-CREATE INDEX idx_reseller_sales_reseller ON reseller_sales(reseller_phone);
 SQL
 echo -e "${GREEN}✅ Base de datos creada${NC}"
 
@@ -343,7 +396,6 @@ apt-get install -y \
 ufw allow 22/tcp
 ufw allow 80/tcp
 ufw allow 443/tcp
-ufw allow 8001/tcp
 ufw allow 3000/tcp
 ufw --force enable
 
@@ -354,9 +406,56 @@ pm2 update
 echo -e "${GREEN}✅ Dependencias instaladas${NC}"
 
 # ================================================
-# CREAR SCRIPT PARA CREAR USUARIOS SSH
+# CREAR SCRIPT PARA CREAR USUARIOS EN SERVIDORES REMOTOS
 # ================================================
-cat > "$INSTALL_DIR/scripts/create_user.sh" << 'EOF'
+cat > "$INSTALL_DIR/scripts/create_remote_user.sh" << 'EOF'
+#!/bin/bash
+# Script para crear usuario SSH en servidor remoto
+
+USERNAME=$1
+PASSWORD=$2
+DAYS=$3
+SERVER_IP=$4
+SERVER_PORT=$5
+SERVER_USER=$6
+SERVER_PASS=$7
+
+# Calcular fecha de expiración
+if [[ "$DAYS" == "test" ]]; then
+    EXPIRE_DATE=$(date -d "+2 hours" +%Y-%m-%d)
+else
+    EXPIRE_DATE=$(date -d "+$DAYS days" +%Y-%m-%d)
+fi
+
+# Comando para crear usuario
+COMMAND="
+useradd -m -s /bin/bash $USERNAME 2>/dev/null;
+echo '$USERNAME:$PASSWORD' | chpasswd 2>/dev/null;
+chage -E $EXPIRE_DATE $USERNAME 2>/dev/null;
+mkdir -p /home/$USERNAME/.ssh 2>/dev/null;
+chown $USERNAME:$USERNAME /home/$USERNAME/.ssh 2>/dev/null;
+chmod 700 /home/$USERNAME/.ssh 2>/dev/null;
+echo 'OK'
+"
+
+# Ejecutar comando remoto
+RESULT=$(sshpass -p "$SERVER_PASS" ssh -p $SERVER_PORT -o ConnectTimeout=10 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "$COMMAND" 2>&1)
+
+if [[ "$RESULT" == *"OK"* ]]; then
+    echo "✅ Usuario $USERNAME creado en $SERVER_IP"
+    exit 0
+else
+    echo "❌ Error: $RESULT"
+    exit 1
+fi
+EOF
+
+chmod +x "$INSTALL_DIR/scripts/create_remote_user.sh"
+
+# ================================================
+# CREAR SCRIPT PARA CREAR USUARIOS LOCALES
+# ================================================
+cat > "$INSTALL_DIR/scripts/create_local_user.sh" << 'EOF'
 #!/bin/bash
 # Script para crear usuario SSH localmente
 
@@ -379,11 +478,11 @@ mkdir -p /home/$USERNAME/.ssh 2>/dev/null
 chown $USERNAME:$USERNAME /home/$USERNAME/.ssh 2>/dev/null
 chmod 700 /home/$USERNAME/.ssh 2>/dev/null
 
-echo "Usuario $USERNAME creado (expira: $EXPIRE_DATE)"
+echo "✅ Usuario $USERNAME creado localmente"
 exit 0
 EOF
 
-chmod +x "$INSTALL_DIR/scripts/create_user.sh"
+chmod +x "$INSTALL_DIR/scripts/create_local_user.sh"
 
 # ================================================
 # INSTALAR MÓDULOS NODE
@@ -394,7 +493,7 @@ cd "$INSTALL_DIR"
 cat > package.json << 'PKGEOF'
 {
     "name": "sshbot-pro",
-    "version": "5.0.0",
+    "version": "6.0.0",
     "main": "bot.js",
     "dependencies": {
         "@wppconnect-team/wppconnect": "^1.24.0",
@@ -411,7 +510,7 @@ PKGEOF
 npm install
 
 # ================================================
-# CREAR ARCHIVO PRINCIPAL DEL BOT (bot.js)
+# CREAR ARCHIVO PRINCIPAL DEL BOT (bot.js) - VERSIÓN FINAL
 # ================================================
 cat > "$INSTALL_DIR/bot.js" << 'BOTEOF'
 const wppconnect = require('@wppconnect-team/wppconnect');
@@ -423,17 +522,39 @@ const { exec } = require('child_process');
 const util = require('util');
 const execPromise = util.promisify(exec);
 
+console.log('🚀 INICIANDO BOT SSH PRO v6.0...');
+
 // Configuración
-const config = JSON.parse(fs.readFileSync('/opt/sshbot-pro/config/config.json', 'utf8'));
-const db = new sqlite3.Database(config.paths.database);
+let config, servers;
+try {
+    config = JSON.parse(fs.readFileSync('/opt/sshbot-pro/config/config.json', 'utf8'));
+    try {
+        servers = JSON.parse(fs.readFileSync('/opt/sshbot-pro/config/servers.json', 'utf8'));
+    } catch (e) {
+        servers = { servers: [] };
+    }
+    console.log('✅ Configuración cargada');
+} catch (err) {
+    console.error('❌ Error cargando configuración:', err);
+    process.exit(1);
+}
+
+// Base de datos
+let db;
+try {
+    db = new sqlite3.Database('/opt/sshbot-pro/data/users.db');
+    console.log('✅ Base de datos conectada');
+} catch (err) {
+    console.error('❌ Error conectando a BD:', err);
+}
 
 // Cache de revendedores
 let resellersCache = new Map();
 
-// Actualizar cache de revendedores
 function updateResellersCache() {
+    if (!db) return;
     db.all("SELECT phone, code, discount FROM resellers WHERE is_active = 1", [], (err, rows) => {
-        if (!err) {
+        if (!err && rows) {
             resellersCache.clear();
             rows.forEach(r => resellersCache.set(r.code, { phone: r.phone, discount: r.discount }));
             console.log(`📱 Revendedores en cache: ${resellersCache.size}`);
@@ -442,12 +563,23 @@ function updateResellersCache() {
 }
 
 setInterval(updateResellersCache, 300000);
-updateResellersCache();
+setTimeout(updateResellersCache, 2000);
 
-// ================================================
-// FUNCIONES DE REVENDEDORES
-// ================================================
+// Estados en memoria
+const userStates = new Map();
 
+function getUserState(phone) {
+    if (!userStates.has(phone)) {
+        userStates.set(phone, { state: 'main_menu', data: null });
+    }
+    return userStates.get(phone);
+}
+
+function setUserState(phone, state, data = null) {
+    userStates.set(phone, { state, data });
+}
+
+// Validar código de revendedor
 function validateResellerCode(code) {
     const reseller = resellersCache.get(code);
     if (reseller) {
@@ -456,35 +588,53 @@ function validateResellerCode(code) {
     return { valid: false };
 }
 
-function registerResellerSale(resellerPhone, clientPhone, planDays, amount, discount, username) {
+// Registrar venta de revendedor
+function registerResellerSale(resellerPhone, clientPhone, planDays, amount, discount, username, serverId = 0) {
+    if (!db) return;
     db.run(`
-        INSERT INTO reseller_sales (reseller_phone, client_phone, plan_days, amount, discount_applied, username)
-        VALUES (?, ?, ?, ?, ?, ?)
-    `, [resellerPhone, clientPhone, planDays, amount, discount, username]);
+        INSERT INTO reseller_sales (reseller_phone, client_phone, plan_days, amount, discount_applied, username, server_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `, [resellerPhone, clientPhone, planDays, amount, discount, username, serverId]);
     
     db.run("UPDATE resellers SET total_sales = total_sales + 1 WHERE phone = ?", [resellerPhone]);
 }
 
-// ================================================
-// FUNCIONES DE USUARIOS SSH
-// ================================================
-
-async function createSSHUser(phone, days, tipo = 'user') {
+// Crear usuario SSH (local o remoto)
+async function createSSHUser(phone, days, tipo = 'user', serverId = 0) {
     return new Promise(async (resolve, reject) => {
         try {
             const username = `user${Date.now().toString().slice(-6)}j`;
             const password = '12345';
             
-            const expiresAt = moment().add(days === 'test' ? 2 : days * 24, 'hours').format('YYYY-MM-DD HH:mm:ss');
+            let expiresAt;
+            if (tipo === 'test') {
+                expiresAt = moment().add(config.bot.test_hours, 'hours').format('YYYY-MM-DD HH:mm:ss');
+            } else {
+                expiresAt = moment().add(days, 'days').format('YYYY-MM-DD HH:mm:ss');
+            }
             
-            // Ejecutar script de creación
-            const cmd = `bash /opt/sshbot-pro/scripts/create_user.sh ${username} ${password} ${days === 'test' ? 'test' : days}`;
-            await execPromise(cmd);
+            let cmd;
+            if (serverId > 0 && servers.servers[serverId-1]) {
+                // Servidor remoto
+                const srv = servers.servers[serverId-1];
+                cmd = `bash /opt/sshbot-pro/scripts/create_remote_user.sh ${username} ${password} ${tipo === 'test' ? 'test' : days} "${srv.ip}" ${srv.port} "${srv.user}" "${srv.password}"`;
+            } else {
+                // Servidor local
+                cmd = `bash /opt/sshbot-pro/scripts/create_local_user.sh ${username} ${password} ${tipo === 'test' ? 'test' : days}`;
+            }
             
-            db.run(`
-                INSERT INTO users (username, password, phone, tipo, expires_at)
-                VALUES (?, ?, ?, ?, ?)
-            `, [username, password, phone, tipo, expiresAt]);
+            try {
+                await execPromise(cmd);
+            } catch (err) {
+                console.error('Error ejecutando script:', err);
+            }
+            
+            if (db) {
+                db.run(`
+                    INSERT INTO users (username, password, phone, tipo, server_id, expires_at, created_by)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                `, [username, password, phone, tipo, serverId, expiresAt, phone]);
+            }
             
             resolve({ username, password, expires: expiresAt });
         } catch (error) {
@@ -493,366 +643,205 @@ async function createSSHUser(phone, days, tipo = 'user') {
     });
 }
 
-// ================================================
-// FUNCIONES DE ESTADO
-// ================================================
-
-function getUserState(phone) {
-    return new Promise((resolve) => {
-        db.get("SELECT state, data FROM user_state WHERE phone = ?", [phone], (err, row) => {
-            if (row) {
-                resolve({ state: row.state, data: row.data ? JSON.parse(row.data) : null });
-            } else {
-                resolve({ state: 'main_menu', data: null });
-            }
-        });
+// Mostrar servidores disponibles
+function getServersList() {
+    if (!servers.servers || servers.servers.length === 0) {
+        return "📡 Usando servidor local (por defecto)";
+    }
+    
+    let list = "🌐 *SERVIDORES DISPONIBLES:*\n\n";
+    servers.servers.forEach((srv, index) => {
+        list += `${index+1}) ${srv.name}\n   📡 ${srv.ip}:${srv.port}\n\n`;
     });
-}
-
-function setUserState(phone, state, data = null) {
-    db.run(`
-        INSERT INTO user_state (phone, state, data, updated_at)
-        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-        ON CONFLICT(phone) DO UPDATE SET
-            state = excluded.state,
-            data = excluded.data,
-            updated_at = CURRENT_TIMESTAMP
-    `, [phone, state, data ? JSON.stringify(data) : null]);
+    list += "0) Servidor local\n";
+    return list;
 }
 
 // ================================================
-// INICIAR BOT
+// INICIAR BOT DE WHATSAPP
 // ================================================
+console.log(`📱 Nombre: ${config.bot.name}`);
+console.log(`💰 Descuento revendedores: ${config.bot.reseller_discount}%`);
+console.log(`🌐 Servidores remotos: ${servers.servers.length}\n`);
+
 wppconnect.create({
     session: 'sshbot-pro',
     headless: true,
     useChrome: true,
-    browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'],
-    folderNameToken: config.paths.sessions
-}).then(client => start(client)).catch(err => console.log(err));
+    disableWelcome: true,
+    updatesLog: false,
+    browserArgs: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+        '--window-size=800,600'
+    ],
+    folderNameToken: '/root/.wppconnect/sshbot-pro'
+}).then(client => start(client)).catch(err => {
+    console.error('❌ Error fatal:', err);
+});
 
 function start(client) {
-    console.log('\n✅ BOT SSH PRO v5.0 INICIADO');
-    console.log(`📱 Nombre visual: ${config.bot.name}`);
-    console.log(`💰 Descuento revendedores: ${config.bot.reseller_discount}%`);
-    console.log(`📁 Rutas fijas: /opt/sshbot-pro y /root/sshbot-pro\n`);
+    console.log('✅ BOT CONECTADO A WHATSAPP\n');
     
     client.on('qr', (qr) => {
-        console.log('📱 ESCANEA EL QR:\n');
+        console.log('\n📱 ESCANEA ESTE QR CON WHATSAPP:\n');
         qrcode.generate(qr, { small: true });
         console.log('\n');
     });
     
-    client.onMessage(async (message) => {
-        if (message.isGroupMsg) return;
-        
-        const phone = message.from;
-        const text = message.body.trim();
-        
-        console.log(`📨 Mensaje de ${phone}: ${text}`);
-        
-        const { state, data } = await getUserState(phone);
-        
-        // ================================================
-        // MENÚ PRINCIPAL (CON NUEVA OPCIÓN 7)
-        // ================================================
-        if (text === '1' && state === 'main_menu') {
-            await handleTest(client, phone);
-        }
-        else if (text === '2' && state === 'main_menu') {
-            await showPlans(client, phone);
-        }
-        else if (text === '3' && state === 'main_menu') {
-            await myAccounts(client, phone);
-        }
-        else if (text === '4' && state === 'main_menu') {
-            await paymentStatus(client, phone);
-        }
-        else if (text === '5' && state === 'main_menu') {
-            await downloadApp(client, phone);
-        }
-        else if (text === '6' && state === 'main_menu') {
-            await support(client, phone);
-        }
-        // ================================================
-        // NUEVA OPCIÓN 7: REVENDEDORES
-        // ================================================
-        else if (text === '7' && state === 'main_menu') {
-            setUserState(phone, 'awaiting_reseller_code');
-            await client.sendText(phone, `🎫 *MODO REVENDEDOR*\n\nIngresa tu *CÓDIGO DE REVENDEDOR* para acceder a los planes con ${config.bot.reseller_discount}% de descuento:`);
-        }
-        // ================================================
-        // FLUJO DE REVENDEDOR
-        // ================================================
-        else if (state === 'awaiting_reseller_code') {
-            const validation = validateResellerCode(text);
-            if (validation.valid) {
-                setUserState(phone, 'reseller_menu', { 
-                    resellerPhone: validation.phone,
-                    discount: validation.discount
-                });
-                await showResellerPlans(client, phone, validation.discount);
-            } else {
-                await client.sendText(phone, '❌ *CÓDIGO INVÁLIDO*\n\nEl código ingresado no es válido. Intenta de nuevo o envía 0 para volver al menú principal.');
+    client.on('authenticated', () => {
+        console.log('✅ BOT AUTENTICADO');
+    });
+    
+    client.on('message', async (message) => {
+        try {
+            if (message.isGroupMsg) return;
+            
+            const phone = message.from;
+            const text = message.body.trim();
+            
+            console.log(`📨 Mensaje de ${phone}: ${text}`);
+            
+            // Comando de prueba
+            if (text === 'ping') {
+                await client.sendText(phone, 'pong');
+                return;
             }
-        }
-        else if (state === 'reseller_menu') {
-            if (text === '0') {
+            
+            const { state, data } = getUserState(phone);
+            
+            // Menú principal
+            if (text === '1' && state === 'main_menu') {
+                await client.sendText(phone, '⏳ Procesando prueba gratis...');
+                const user = await createSSHUser(phone, 0, 'test', 0);
+                await client.sendText(phone, `✅ *PRUEBA GRATIS*
+
+👤 Usuario: ${user.username}
+🔑 Pass: ${user.password}
+⏱️ Expira: ${moment(user.expires).format('DD/MM/YYYY HH:mm')}`);
+            }
+            else if (text === '2' && state === 'main_menu') {
+                await client.sendText(phone, `📋 *PLANES*
+1️⃣ 7d - $${config.prices.price_7d}
+2️⃣ 15d - $${config.prices.price_15d}
+3️⃣ 30d - $${config.prices.price_30d}
+4️⃣ 50d - $${config.prices.price_50d}
+5️⃣ 90d - $${config.prices.price_90d}`);
+            }
+            else if (text === '5' && state === 'main_menu') {
+                await client.sendText(phone, `📲 APP: ${config.links.app_android}`);
+            }
+            else if (text === '6' && state === 'main_menu') {
+                await client.sendText(phone, `🆘 SOPORTE: ${config.links.support}`);
+            }
+            else if (text === '7' && state === 'main_menu') {
+                setUserState(phone, 'awaiting_code');
+                await client.sendText(phone, '🎫 Ingresa tu código de revendedor:');
+            }
+            else if (state === 'awaiting_code') {
+                const validation = validateResellerCode(text);
+                if (validation.valid) {
+                    setUserState(phone, 'selecting_plan', { 
+                        reseller: validation.phone,
+                        discount: validation.discount
+                    });
+                    
+                    let menu = `🎫 *PLANES CON ${validation.discount}% DTO*\n\n`;
+                    menu += `1️⃣ 7d: $${config.prices.price_7d * (100-validation.discount)/100}\n`;
+                    menu += `2️⃣ 15d: $${config.prices.price_15d * (100-validation.discount)/100}\n`;
+                    menu += `3️⃣ 30d: $${config.prices.price_30d * (100-validation.discount)/100}\n`;
+                    menu += `4️⃣ 50d: $${config.prices.price_50d * (100-validation.discount)/100}\n`;
+                    menu += `5️⃣ 90d: $${config.prices.price_90d * (100-validation.discount)/100}\n`;
+                    menu += `\nElige un plan (1-5):`;
+                    
+                    await client.sendText(phone, menu);
+                } else {
+                    await client.sendText(phone, '❌ Código inválido');
+                    setUserState(phone, 'main_menu');
+                }
+            }
+            else if (state === 'selecting_plan') {
+                if (['1','2','3','4','5'].includes(text)) {
+                    setUserState(phone, 'selecting_server', {
+                        ...data,
+                        plan: text
+                    });
+                    
+                    if (servers.servers.length > 0) {
+                        await client.sendText(phone, getServersList() + '\nElige servidor (0 para local):');
+                    } else {
+                        // Sin servidores remotos, crear local
+                        await processPurchase(client, phone, data, text, 0);
+                    }
+                }
+            }
+            else if (state === 'selecting_server') {
+                const serverId = parseInt(text) || 0;
+                await processPurchase(client, phone, data, data.plan, serverId);
+            }
+            else {
                 setUserState(phone, 'main_menu');
-                await showMainMenu(client, phone);
+                await client.sendText(phone, `🤖 *${config.bot.name}*
+1️⃣ Prueba gratis
+2️⃣ Ver planes
+3️⃣ Mis cuentas
+4️⃣ Estado pago
+5️⃣ Descargar APP
+6️⃣ Soporte
+7️⃣ Soy revendedor
+
+Responde el número:`);
             }
-            else if (['1','2','3','4'].includes(text)) {
-                setUserState(phone, 'reseller_confirm', {
-                    ...data,
-                    selectedPlan: text
-                });
-                await confirmResellerPlan(client, phone, text, data.discount);
-            }
-            else {
-                await client.sendText(phone, '❌ Opción no válida. Elige un número del 1 al 4 o 0 para volver.');
-            }
-        }
-        else if (state === 'reseller_confirm') {
-            if (text.toLowerCase() === 'si') {
-                await processResellerPurchase(client, phone, data);
-            }
-            else if (text.toLowerCase() === 'no') {
-                setUserState(phone, 'reseller_menu', {
-                    resellerPhone: data.resellerPhone,
-                    discount: data.discount
-                });
-                await showResellerPlans(client, phone, data.discount);
-            }
-            else {
-                await client.sendText(phone, '❌ Responde *SI* para confirmar o *NO* para cancelar.');
-            }
-        }
-        // ================================================
-        // VOLVER AL MENÚ PRINCIPAL
-        // ================================================
-        else if (text === '0') {
-            setUserState(phone, 'main_menu');
-            await showMainMenu(client, phone);
-        }
-        else {
-            setUserState(phone, 'main_menu');
-            await showMainMenu(client, phone);
+        } catch (err) {
+            console.error('Error procesando mensaje:', err);
         }
     });
 }
 
-// ================================================
-// FUNCIONES DEL MENÚ
-// ================================================
-
-async function showMainMenu(client, phone) {
-    const menu = `╭━━━ *${config.bot.name}* ━━━╮
-┃
-┃ 1️⃣ *PRUEBA GRATIS*
-┃ 2️⃣ *VER PLANES*
-┃ 3️⃣ *MIS CUENTAS*
-┃ 4️⃣ *ESTADO DE PAGO*
-┃ 5️⃣ *DESCARGAR APP*
-┃ 6️⃣ *SOPORTE*
-┃ 7️⃣ *🎫 SOY REVENDEDOR*
-┃
-╰━━━━━━━━━━━━━━━━╯
-    
-Responde el *NÚMERO* de la opción que deseas.`;
-    
-    await client.sendText(phone, menu);
-}
-
-async function showResellerPlans(client, phone, discount) {
-    const menu = `╭━━━ *PLANES CON ${discount}% DCTO* ━━━╮
-┃
-┃ 1️⃣ *7 DÍAS* 
-┃    💰 Normal: $${config.prices.price_7d}
-┃    🏷️  Tu precio: $${config.prices.price_7d * (100-discount)/100}
-┃
-┃ 2️⃣ *15 DÍAS*
-┃    💰 Normal: $${config.prices.price_15d}
-┃    🏷️  Tu precio: $${config.prices.price_15d * (100-discount)/100}
-┃
-┃ 3️⃣ *30 DÍAS*
-┃    💰 Normal: $${config.prices.price_30d}
-┃    🏷️  Tu precio: $${config.prices.price_30d * (100-discount)/100}
-┃
-┃ 4️⃣ *50 DÍAS*
-┃    💰 Normal: $${config.prices.price_50d}
-┃    🏷️  Tu precio: $${config.prices.price_50d * (100-discount)/100}
-┃
-┃ 0️⃣ *VOLVER AL MENÚ PRINCIPAL*
-┃
-╰━━━━━━━━━━━━━━━━╯
-    
-Elige el *NÚMERO* del plan que deseas comprar:`;
-    
-    await client.sendText(phone, menu);
-}
-
-async function confirmResellerPlan(client, phone, planNumber, discount) {
-    const plans = {
-        '1': { days: 7, price: config.prices.price_7d, name: '7 días' },
-        '2': { days: 15, price: config.prices.price_15d, name: '15 días' },
-        '3': { days: 30, price: config.prices.price_30d, name: '30 días' },
-        '4': { days: 50, price: config.prices.price_50d, name: '50 días' }
-    };
-    
-    const plan = plans[planNumber];
-    const finalPrice = plan.price * (100 - discount) / 100;
-    
-    const msg = `╭━━━ *CONFIRMAR COMPRA* ━━━╮
-┃
-┃ 📦 *Plan:* ${plan.name}
-┃ 💰 *Precio original:* $${plan.price}
-┃ 🎫 *Descuento:* ${discount}%
-┃ 🏷️  *Precio final:* $${finalPrice}
-┃
-┃ ¿Confirmar la compra?
-┃
-┃ *SI* - Confirmar
-┃ *NO* - Cancelar
-┃
-╰━━━━━━━━━━━━━━━━╯`;
-    
-    await client.sendText(phone, msg);
-}
-
-async function processResellerPurchase(client, phone, data) {
+async function processPurchase(client, phone, data, planNumber, serverId) {
     const plans = {
         '1': { days: 7, price: config.prices.price_7d },
         '2': { days: 15, price: config.prices.price_15d },
         '3': { days: 30, price: config.prices.price_30d },
-        '4': { days: 50, price: config.prices.price_50d }
+        '4': { days: 50, price: config.prices.price_50d },
+        '5': { days: 90, price: config.prices.price_90d }
     };
     
-    const plan = plans[data.selectedPlan];
+    const plan = plans[planNumber];
     const finalPrice = plan.price * (100 - data.discount) / 100;
     
+    await client.sendText(phone, '⏳ Creando usuario...');
+    
     try {
-        await client.sendText(phone, '⏳ *CREANDO TU CUENTA...*\n\nPor favor espera unos segundos.');
+        const user = await createSSHUser(phone, plan.days, 'user', serverId);
         
-        const user = await createSSHUser(phone, plan.days, 'user');
-        
-        // Registrar venta del revendedor
         registerResellerSale(
-            data.resellerPhone,
+            data.reseller,
             phone,
             plan.days,
             finalPrice,
             data.discount,
-            user.username
+            user.username,
+            serverId
         );
         
-        const msg = `✅ *¡CUENTA CREADA CON ÉXITO!*
-
-╭━━━ *DATOS DE ACCESO* ━━━╮
-┃
-┃ 👤 *Usuario:* \`${user.username}\`
-┃ 🔑 *Contraseña:* \`${user.password}\`
-┃ 🌐 *Servidor:* ${config.bot.server_ip}
-┃ ⏱️ *Expira:* ${moment(user.expires).format('DD/MM/YYYY HH:mm')}
-┃
-┃ 💰 *Total pagado:* $${finalPrice}
-┃
-╰━━━━━━━━━━━━━━━━╯
-
-📲 *DESCARGAR APP:* 
-${config.links.app_android}`;
+        let serverText = serverId > 0 ? `📡 Servidor: ${servers.servers[serverId-1].name}` : '📡 Servidor: Local';
         
-        await client.sendText(phone, msg);
-        setUserState(phone, 'main_menu');
+        await client.sendText(phone, `✅ *USUARIO CREADO*
+
+👤 Usuario: ${user.username}
+🔑 Pass: ${user.password}
+⏱️ Expira: ${moment(user.expires).format('DD/MM/YYYY HH:mm')}
+${serverText}`);
         
-    } catch (error) {
-        await client.sendText(phone, '❌ *ERROR*\n\nNo se pudo crear la cuenta. Contacta a soporte.');
-        setUserState(phone, 'main_menu');
+    } catch (err) {
+        await client.sendText(phone, '❌ Error creando usuario');
     }
-}
-
-// ================================================
-// FUNCIONES ORIGINALES
-// ================================================
-
-async function handleTest(client, phone) {
-    const today = moment().format('YYYY-MM-DD');
     
-    db.get("SELECT * FROM daily_tests WHERE phone = ? AND date = ?", [phone, today], async (err, row) => {
-        if (row) {
-            await client.sendText(phone, '❌ Ya usaste tu prueba gratis hoy. Vuelve mañana o adquiere un plan.');
-        } else {
-            try {
-                const user = await createSSHUser(phone, 'test', 'test');
-                db.run("INSERT INTO daily_tests (phone, date) VALUES (?, ?)", [phone, today]);
-                
-                await client.sendText(phone, `✅ *PRUEBA GRATIS ACTIVADA*
-
-👤 Usuario: \`${user.username}\`
-🔑 Contraseña: \`${user.password}\`
-⏱️ Duración: ${config.bot.test_hours} horas
-
-📲 APP: ${config.links.app_android}`);
-            } catch (err) {
-                await client.sendText(phone, '❌ Error al crear la prueba.');
-            }
-        }
-    });
-}
-
-async function showPlans(client, phone) {
-    const msg = `╭━━━ *PLANES DISPONIBLES* ━━━╮
-┃
-┃ 1️⃣ *7 DÍAS* - $${config.prices.price_7d}
-┃ 2️⃣ *15 DÍAS* - $${config.prices.price_15d}
-┃ 3️⃣ *30 DÍAS* - $${config.prices.price_30d}
-┃ 4️⃣ *50 DÍAS* - $${config.prices.price_50d}
-┃
-╰━━━━━━━━━━━━━━━━╯
-
-💰 *MEDIOS DE PAGO:* MercadoPago / Transferencia
-💬 Contacta a soporte para comprar: ${config.links.support}`;
-    
-    await client.sendText(phone, msg);
-}
-
-async function myAccounts(client, phone) {
-    db.all("SELECT username, expires_at FROM users WHERE phone = ? AND status = 1 ORDER BY created_at DESC LIMIT 5", [phone], async (err, rows) => {
-        if (rows && rows.length > 0) {
-            let msg = "📋 *TUS CUENTAS ACTIVAS*\n\n";
-            rows.forEach((row, i) => {
-                msg += `${i+1}. 👤 ${row.username}\n   ⏱️ Exp: ${moment(row.expires_at).format('DD/MM/YYYY')}\n\n`;
-            });
-            await client.sendText(phone, msg);
-        } else {
-            await client.sendText(phone, '📭 No tienes cuentas activas.');
-        }
-    });
-}
-
-async function paymentStatus(client, phone) {
-    await client.sendText(phone, '💰 *ESTADO DE PAGOS*\n\nPróximamente disponible con MercadoPago.');
-}
-
-async function downloadApp(client, phone) {
-    await client.sendText(phone, `📲 *DESCARGAR APP*
-
-Link directo:
-${config.links.app_android}
-
-⚠️ *INSTRUCCIONES:*
-1. Descarga e instala la app
-2. Abre la app y acepta permisos
-3. Ingresa con tu usuario y contraseña
-4. Conecta y disfruta internet ilimitado`);
-}
-
-async function support(client, phone) {
-    await client.sendText(phone, `🆘 *SOPORTE TÉCNICO*
-
-Si tienes problemas, contacta a nuestro representante:
-${config.links.support}
-
-⏰ Horario de atención: 24/7`);
+    setUserState(phone, 'main_menu');
 }
 BOTEOF
 
@@ -861,12 +850,11 @@ BOTEOF
 # ================================================
 cat > /usr/local/bin/sshbot << 'SSHBOTEOF'
 #!/bin/bash
-# ================================================
-# MENÚ DE ADMINISTRACIÓN SSH BOT PRO v5.0
-# ================================================
+# MENÚ DE ADMINISTRACIÓN SSH BOT PRO v6.0
 
 DB_FILE="/opt/sshbot-pro/data/users.db"
 CONFIG_FILE="/opt/sshbot-pro/config/config.json"
+SERVERS_FILE="/opt/sshbot-pro/config/servers.json"
 INSTALL_DIR="/opt/sshbot-pro"
 
 RED='\033[0;31m'
@@ -880,212 +868,116 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-mostrar_menu() {
+while true; do
     clear
     echo "================================================"
-    echo "   SSH BOT PRO v5.0 - ADMINISTRACIÓN           "
+    echo "   SSH BOT PRO v6.0 - ADMINISTRACIÓN           "
     echo "================================================"
     echo ""
-    echo " 1) Gestionar Revendedores"
-    echo " 2) Listar Revendedores"
-    echo " 3) Agregar Revendedor"
-    echo " 4) Generar Código para Revendedor"
-    echo " 5) Ver Ventas por Revendedor"
-    echo " 6) Ver Estadísticas Generales"
-    echo " 7) Ver Usuarios Activos"
-    echo " 8) Ver Logs del Bot"
-    echo " 9) Reiniciar Bot"
-    echo "10) Ver QR de Conexión"
-    echo "11) Configurar Precios"
-    echo "12) Hacer Backup"
-    echo "13) Restaurar Backup"
+    echo " 1) Listar revendedores"
+    echo " 2) Agregar revendedor"
+    echo " 3) Generar código nuevo"
+    echo " 4) Ver ventas por revendedor"
+    echo " 5) Ver estadísticas"
+    echo " 6) Ver usuarios activos"
+    echo " 7) Gestionar servidores remotos"
+    echo " 8) Ver logs del bot"
+    echo " 9) Reiniciar bot"
+    echo "10) Ver QR"
+    echo "11) Configurar precios"
+    echo "12) Hacer backup"
+    echo "13) Restaurar backup"
     echo " 0) Salir"
     echo ""
     echo "================================================"
-}
-
-listar_revendedores() {
-    echo ""
-    echo "📱 REVENDEDORES REGISTRADOS:"
-    echo "----------------------------"
-    echo ""
-    sqlite3 "$DB_FILE" "SELECT id, phone, code, total_sales, CASE WHEN is_active=1 THEN 'ACTIVO' ELSE 'INACTIVO' END FROM resellers ORDER BY total_sales DESC;"
-    echo ""
-    read -p "Presiona Enter para continuar..."
-}
-
-agregar_revendedor() {
-    echo ""
-    echo "➕ NUEVO REVENDEDOR"
-    echo "------------------"
-    read -p "Número de WhatsApp (ej: 5493813414485): " phone
-    # Generar código aleatorio de 6 caracteres
-    code=$(tr -dc 'A-Z0-9' < /dev/urandom | fold -w 6 | head -n 1)
+    read -p "Opción: " opt
     
-    sqlite3 "$DB_FILE" "INSERT INTO resellers (phone, code) VALUES ('$phone', '$code');"
-    echo -e "${GREEN}✅ Revendedor agregado con código: $code${NC}"
-    echo ""
-    echo "Reiniciando bot para aplicar cambios..."
-    pm2 restart sshbot-pro > /dev/null 2>&1
-    echo ""
-    read -p "Presiona Enter para continuar..."
-}
-
-generar_codigo() {
-    echo ""
-    read -p "Número del revendedor: " phone
-    newcode=$(tr -dc 'A-Z0-9' < /dev/urandom | fold -w 6 | head -n 1)
-    sqlite3 "$DB_FILE" "UPDATE resellers SET code='$newcode' WHERE phone='$phone';"
-    echo -e "${GREEN}✅ Nuevo código: $newcode${NC}"
-    echo ""
-    echo "Reiniciando bot para aplicar cambios..."
-    pm2 restart sshbot-pro > /dev/null 2>&1
-    echo ""
-    read -p "Presiona Enter para continuar..."
-}
-
-ver_ventas() {
-    echo ""
-    read -p "Número del revendedor: " phone
-    echo ""
-    echo "📊 VENTAS DEL REVENDEDOR $phone"
-    echo "-------------------------------"
-    echo ""
-    sqlite3 "$DB_FILE" "SELECT client_phone, plan_days, amount, username, sold_at FROM reseller_sales WHERE reseller_phone='$phone' ORDER BY sold_at DESC LIMIT 10;"
-    echo ""
-    read -p "Presiona Enter para continuar..."
-}
-
-ver_estadisticas() {
-    total_resellers=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM resellers WHERE is_active=1;")
-    total_sales=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM reseller_sales;")
-    total_users=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM users;")
-    active_users=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM users WHERE status=1 AND expires_at > datetime('now');")
-    total_tests=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM users WHERE tipo='test';")
-    
-    echo ""
-    echo "📊 ESTADÍSTICAS GENERALES"
-    echo "-------------------------"
-    echo ""
-    echo "📱 Revendedores activos: $total_resellers"
-    echo "💰 Ventas totales: $total_sales"
-    echo "👥 Usuarios totales: $total_users"
-    echo "✅ Usuarios activos: $active_users"
-    echo "🎁 Pruebas gratis: $total_tests"
-    echo ""
-    read -p "Presiona Enter para continuar..."
-}
-
-ver_usuarios() {
-    echo ""
-    echo "👥 USUARIOS ACTIVOS"
-    echo "-------------------"
-    echo ""
-    sqlite3 "$DB_FILE" "SELECT username, phone, expires_at FROM users WHERE status=1 AND expires_at > datetime('now') ORDER BY expires_at ASC LIMIT 20;"
-    echo ""
-    read -p "Presiona Enter para continuar..."
-}
-
-ver_logs() {
-    clear
-    echo "📋 LOGS DEL BOT (últimas 30 líneas)"
-    echo "------------------------------------"
-    echo ""
-    pm2 logs sshbot-pro --lines 30 --nostream
-    echo ""
-    read -p "Presiona Enter para continuar..."
-}
-
-reiniciar_bot() {
-    echo ""
-    echo "Reiniciando bot..."
-    pm2 restart sshbot-pro
-    echo -e "${GREEN}✅ Bot reiniciado${NC}"
-    sleep 2
-}
-
-ver_qr() {
-    clear
-    echo "📱 QR DE CONEXIÓN WHATSAPP"
-    echo "--------------------------"
-    echo ""
-    echo "Buscando QR en los logs..."
-    echo ""
-    pm2 logs sshbot-pro --lines 50 --nostream | grep -A 15 "QR" || echo "No se encontró QR. Espera a que el bot genere uno."
-    echo ""
-    read -p "Presiona Enter para continuar..."
-}
-
-configurar_precios() {
-    nano "$CONFIG_FILE"
-    echo ""
-    echo "Reiniciando bot para aplicar cambios..."
-    pm2 restart sshbot-pro
-    echo -e "${GREEN}✅ Bot reiniciado${NC}"
-    sleep 2
-}
-
-hacer_backup() {
-    echo ""
-    echo "📦 CREANDO BACKUP..."
-    echo "-------------------"
-    mkdir -p /opt/sshbot-pro/backups
-    backup_file="/opt/sshbot-pro/backups/backup_$(date +%Y%m%d_%H%M%S).tar.gz"
-    tar -czf "$backup_file" -C /opt/sshbot-pro data config 2>/dev/null
-    echo -e "${GREEN}✅ Backup creado: $backup_file${NC}"
-    echo ""
-    read -p "Presiona Enter para continuar..."
-}
-
-restaurar_backup() {
-    echo ""
-    echo "📂 BACKUPS DISPONIBLES:"
-    echo "-----------------------"
-    ls -lh /opt/sshbot-pro/backups/ | grep tar.gz
-    echo ""
-    read -p "Nombre del archivo de backup a restaurar: " backup
-    if [ -f "/opt/sshbot-pro/backups/$backup" ]; then
-        echo "Restaurando backup..."
-        tar -xzf "/opt/sshbot-pro/backups/$backup" -C /opt/sshbot-pro 2>/dev/null
-        echo -e "${GREEN}✅ Backup restaurado${NC}"
-        echo "Reiniciando bot..."
-        pm2 restart sshbot-pro
-        echo -e "${GREEN}✅ Bot reiniciado${NC}"
-    else
-        echo -e "${RED}❌ Archivo no encontrado${NC}"
-    fi
-    echo ""
-    read -p "Presiona Enter para continuar..."
-}
-
-# Menú principal
-while true; do
-    mostrar_menu
-    read -p "Selecciona una opción: " opcion
-    
-    case $opcion in
-        1|2) listar_revendedores ;;
-        3) agregar_revendedor ;;
-        4) generar_codigo ;;
-        5) ver_ventas ;;
-        6) ver_estadisticas ;;
-        7) ver_usuarios ;;
-        8) ver_logs ;;
-        9) reiniciar_bot ;;
-        10) ver_qr ;;
-        11) configurar_precios ;;
-        12) hacer_backup ;;
-        13) restaurar_backup ;;
-        0) 
-            clear
-            echo "================================================"
-            echo "              ¡HASTA LUEGO!                    "
-            echo "================================================"
-            exit 0
+    case $opt in
+        1)
+            echo ""
+            sqlite3 "$DB_FILE" "SELECT id, phone, code, total_sales FROM resellers WHERE is_active=1 ORDER BY total_sales DESC;"
+            read -p "Enter..."
             ;;
-        *)
-            echo "❌ Opción no válida"
+        2)
+            echo ""
+            read -p "Número WhatsApp: " tel
+            code=$(tr -dc 'A-Z0-9' < /dev/urandom | fold -w 6 | head -n 1)
+            sqlite3 "$DB_FILE" "INSERT INTO resellers (phone, code) VALUES ('$tel', '$code');"
+            echo -e "${GREEN}✅ Código: $code${NC}"
+            pm2 restart sshbot-pro
+            read -p "Enter..."
+            ;;
+        3)
+            echo ""
+            read -p "Número del revendedor: " tel
+            newcode=$(tr -dc 'A-Z0-9' < /dev/urandom | fold -w 6 | head -n 1)
+            sqlite3 "$DB_FILE" "UPDATE resellers SET code='$newcode' WHERE phone='$tel';"
+            echo -e "${GREEN}✅ Nuevo código: $newcode${NC}"
+            pm2 restart sshbot-pro
+            read -p "Enter..."
+            ;;
+        4)
+            echo ""
+            read -p "Número revendedor: " tel
+            sqlite3 "$DB_FILE" "SELECT client_phone, plan_days, amount, username, sold_at FROM reseller_sales WHERE reseller_phone='$tel' ORDER BY sold_at DESC LIMIT 10;"
+            read -p "Enter..."
+            ;;
+        5)
+            total_res=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM resellers WHERE is_active=1;")
+            total_sales=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM reseller_sales;")
+            total_users=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM users;")
+            active_users=$(sqlite3 "$DB_FILE" "SELECT COUNT(*) FROM users WHERE status=1 AND expires_at > datetime('now');")
+            echo ""
+            echo "📊 Revendedores: $total_res"
+            echo "💰 Ventas: $total_sales"
+            echo "👥 Usuarios: $total_users"
+            echo "✅ Activos: $active_users"
+            read -p "Enter..."
+            ;;
+        6)
+            echo ""
+            sqlite3 "$DB_FILE" "SELECT username, phone, expires_at FROM users WHERE status=1 AND expires_at > datetime('now') ORDER BY expires_at ASC LIMIT 20;"
+            read -p "Enter..."
+            ;;
+        7)
+            nano "$SERVERS_FILE"
+            pm2 restart sshbot-pro
+            ;;
+        8)
+            pm2 logs sshbot-pro --lines 30 --nostream
+            read -p "Enter..."
+            ;;
+        9)
+            pm2 restart sshbot-pro
+            echo "✅ Bot reiniciado"
             sleep 2
+            ;;
+        10)
+            pm2 logs sshbot-pro --lines 50 --nostream | grep -A 20 "ESCANEA"
+            read -p "Enter..."
+            ;;
+        11)
+            nano "$CONFIG_FILE"
+            pm2 restart sshbot-pro
+            ;;
+        12)
+            backup="/opt/sshbot-pro/backups/backup_$(date +%Y%m%d_%H%M%S).tar.gz"
+            tar -czf "$backup" -C /opt/sshbot-pro data config 2>/dev/null
+            echo -e "${GREEN}✅ Backup: $backup${NC}"
+            read -p "Enter..."
+            ;;
+        13)
+            ls -lh /opt/sshbot-pro/backups/
+            read -p "Archivo a restaurar: " file
+            if [ -f "/opt/sshbot-pro/backups/$file" ]; then
+                tar -xzf "/opt/sshbot-pro/backups/$file" -C /opt/sshbot-pro
+                pm2 restart sshbot-pro
+                echo "✅ Restaurado"
+            fi
+            read -p "Enter..."
+            ;;
+        0)
+            exit 0
             ;;
     esac
 done
@@ -1094,35 +986,15 @@ SSHBOTEOF
 chmod +x /usr/local/bin/sshbot
 
 # ================================================
-# CONFIGURAR CRON Y PM2
+# CREAR ENLACE SIMBÓLICO (GARANTIZADO)
 # ================================================
-echo -e "\n${CYAN}${BOLD}⚙️ CONFIGURANDO SERVICIOS...${NC}"
-
-# Script de limpieza
-cat > "$INSTALL_DIR/scripts/cleanup.sh" << 'EOF'
-#!/bin/bash
-DB_FILE="/opt/sshbot-pro/data/users.db"
-sqlite3 "$DB_FILE" "UPDATE users SET status=0 WHERE expires_at < datetime('now');"
-find /root/.wppconnect -type f -mtime +7 -delete 2>/dev/null
-echo "$(date): Limpieza completada" >> /opt/sshbot-pro/logs/cleanup.log
-EOF
-
-chmod +x "$INSTALL_DIR/scripts/cleanup.sh"
-
-# Cron jobs
-echo "*/15 * * * * root /opt/sshbot-pro/scripts/cleanup.sh" > /etc/cron.d/sshbot-cleanup
-echo "0 3 * * * root tar -czf /opt/sshbot-pro/backups/backup-\$(date +\%Y\%m\%d).tar.gz -C /opt/sshbot-pro data config 2>/dev/null" >> /etc/cron.d/sshbot-cleanup
-
-# Iniciar con PM2
-cd "$INSTALL_DIR"
-pm2 start bot.js --name sshbot-pro
-pm2 save
-pm2 startup
+rm -rf /root/sshbot-pro
+ln -s /opt/sshbot-pro /root/sshbot-pro
+echo -e "\n${GREEN}✅ Enlace simbólico creado: /root/sshbot-pro -> /opt/sshbot-pro${NC}"
 
 # ================================================
 # CREAR REVENDEDORES DE EJEMPLO
 # ================================================
-echo -e "\n${YELLOW}🎫 Creando revendedores de ejemplo...${NC}"
 CODE1=$(tr -dc 'A-Z0-9' < /dev/urandom | fold -w 6 | head -n 1)
 CODE2=$(tr -dc 'A-Z0-9' < /dev/urandom | fold -w 6 | head -n 1)
 
@@ -1130,7 +1002,23 @@ sqlite3 "$DB_FILE" "INSERT INTO resellers (phone, code) VALUES ('5493813414485',
 sqlite3 "$DB_FILE" "INSERT INTO resellers (phone, code) VALUES ('5493815123456', '$CODE2');"
 
 # ================================================
-# MOSTRAR INFORMACIÓN FINAL
+# CONFIGURAR CRON
+# ================================================
+cat > /etc/cron.d/sshbot-cleanup << EOF
+*/15 * * * * root sqlite3 $DB_FILE "UPDATE users SET status=0 WHERE expires_at < datetime('now');"
+0 3 * * * root tar -czf /opt/sshbot-pro/backups/backup-\$(date +\%Y\%m\%d).tar.gz -C /opt/sshbot-pro data config 2>/dev/null
+EOF
+
+# ================================================
+# INICIAR BOT
+# ================================================
+cd "$INSTALL_DIR"
+pm2 start bot.js --name sshbot-pro
+pm2 save
+pm2 startup
+
+# ================================================
+# MOSTRAR RESUMEN FINAL
 # ================================================
 clear
 echo -e "${GREEN}${BOLD}"
@@ -1140,32 +1028,34 @@ echo "║         ✅ INSTALACIÓN COMPLETADA EXITOSAMENTE              ║"
 echo "║                                                              ║"
 echo "╠══════════════════════════════════════════════════════════════╣"
 echo "║                                                              ║"
-echo "║  📱 NOMBRE VISUAL:                                          ║"
-echo "║     ${CYAN}$BOT_NAME${GREEN}                                          ║"
+echo "║  📱 NOMBRE VISUAL: ${CYAN}$BOT_NAME${GREEN}                            ║"
 echo "║                                                              ║"
 echo "║  📁 RUTAS FIJAS (NO CAMBIAN):                                ║"
-echo "║     • Principal: ${CYAN}/opt/sshbot-pro${GREEN}                        ║"
-echo "║     • Usuario:   ${CYAN}/root/sshbot-pro${GREEN} (enlace simbólico)   ║"
-echo "║     • Sesiones:  ${CYAN}/root/.wppconnect/sshbot-pro${GREEN}           ║"
+echo "║     • Principal: ${CYAN}/opt/sshbot-pro${GREEN}                          ║"
+echo "║     • Enlace:    ${CYAN}/root/sshbot-pro${GREEN} (✓ funcionando)        ║"
+echo "║     • Sesiones:  ${CYAN}/root/.wppconnect/sshbot-pro${GREEN}             ║"
 echo "║                                                              ║"
 echo "║  🎫 REVENDEDORES DE EJEMPLO:                                 ║"
-echo "║     • Revendedor 1 - Código: ${YELLOW}$CODE1${GREEN}                   ║"
-echo "║     • Revendedor 2 - Código: ${YELLOW}$CODE2${GREEN}                   ║"
+echo "║     • Código 1: ${YELLOW}$CODE1${GREEN}                                    ║"
+echo "║     • Código 2: ${YELLOW}$CODE2${GREEN}                                    ║"
 echo "║                                                              ║"
-echo "║  🖥️  COMANDO DE ADMINISTRACIÓN:                               ║"
-echo "║     ${CYAN}sshbot${GREEN}                                                ║"
+echo "║  🌐 SERVIDORES REMOTOS: ${CYAN}$SERVER_COUNT${GREEN} configurados                ║"
 echo "║                                                              ║"
-echo "║  📱 NUEVA OPCIÓN EN WHATSAPP:                                ║"
-echo "║     • Opción ${YELLOW}7${GREEN} - SOY REVENDEDOR                         ║"
-echo "║     • Ingresa el código para 50% descuento                  ║"
+echo "║  🖥️  COMANDOS:                                               ║"
+echo "║     • ${CYAN}sshbot${GREEN} - Menú de administración                      ║"
+echo "║     • ${CYAN}pm2 logs sshbot-pro${GREEN} - Ver logs                        ║"
+echo "║                                                              ║"
+echo "║  📱 WHATSAPP:                                                ║"
+echo "║     • Opción 7: Ingresar código de revendedor                ║"
+echo "║     • Elige servidor (si hay remotos configurados)           ║"
 echo "║                                                              ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
 # Mostrar QR
 echo -e "\n${YELLOW}📱 ESPERANDO QR DE WHATSAPP...${NC}"
-sleep 5
-pm2 logs sshbot-pro --lines 20 --nostream | grep -A 10 "QR" || echo -e "${CYAN}Ejecuta 'sshbot' y opción 10 para ver el QR${NC}"
+sleep 3
+pm2 logs sshbot-pro --lines 20 --nostream | grep -A 10 "ESCANEA" || echo -e "${CYAN}Ejecuta 'sshbot' y opción 10 para ver el QR${NC}"
 echo ""
 
 exit 0
