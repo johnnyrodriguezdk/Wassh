@@ -18,6 +18,9 @@
 # ✅ 50% DE DESCUENTO AUTOMÁTICO
 # ✅ MENÚ ESPECIAL EN VPS (COMANDO: sshbot)
 # ================================================
+# NOTA: El nombre del bot es SOLO VISUAL
+# Las rutas son FIJAS: /opt/sshbot-pro y /root/sshbot-pro
+# ================================================
 
 set -e
 
@@ -70,20 +73,20 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # ================================================
-# CONFIGURACIÓN DEL NOMBRE
+# CONFIGURACIÓN DEL NOMBRE (SOLO VISUAL)
 # ================================================
-echo -e "\n${CYAN}${BOLD}⚙️ CONFIGURACIÓN DEL BOT${NC}"
-read -p "📝 NOMBRE PARA TU BOT (ej: MI BOT PRO): " BOT_NAME
+echo -e "\n${CYAN}${BOLD}⚙️ CONFIGURACIÓN DEL BOT (SOLO VISUAL)${NC}"
+echo -e "${YELLOW}⚠️  El nombre que ingreses SOLO se verá en los mensajes${NC}"
+echo -e "${YELLOW}⚠️  Las rutas de instalación son FIJAS: /opt/sshbot-pro${NC}\n"
+
+read -p "📝 NOMBRE VISUAL PARA TU BOT (ej: MI BOT PRO): " BOT_NAME
 BOT_NAME=${BOT_NAME:-"MI BOT PRO"}
 
-SAFE_NAME=$(echo "$BOT_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
-SAFE_NAME=${SAFE_NAME:-"bot"}
-
-echo -e "\n${GREEN}✅ Nombre: ${CYAN}$BOT_NAME${NC}"
-echo -e "✅ Ruta segura: ${CYAN}$SAFE_NAME${NC}"
+echo -e "\n${GREEN}✅ Nombre visual: ${CYAN}$BOT_NAME${NC}"
+echo -e "${GREEN}✅ Rutas fijas: ${CYAN}/opt/sshbot-pro${NC} y ${CYAN}/root/sshbot-pro${NC}\n"
 
 # ================================================
-# RUTAS (MANTENIENDO LA ORIGINAL DE SSH-BOT-2)
+# RUTAS FIJAS (NO DEPENDEN DEL NOMBRE)
 # ================================================
 INSTALL_DIR="/opt/sshbot-pro"
 USER_HOME="/root/sshbot-pro"
@@ -91,7 +94,7 @@ DB_FILE="$INSTALL_DIR/data/users.db"
 CONFIG_FILE="$INSTALL_DIR/config/config.json"
 INFO_FILE="$INSTALL_DIR/config/info.txt"
 
-echo -e "\n${YELLOW}📁 Instalación en: $INSTALL_DIR${NC}"
+echo -e "${YELLOW}📁 Instalación en: $INSTALL_DIR${NC}"
 read -p "$(echo -e "${YELLOW}¿Continuar? (s/N): ${NC}")" -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Ss]$ ]]; then
@@ -107,19 +110,26 @@ pm2 delete sshbot-pro 2>/dev/null || true
 pm2 kill 2>/dev/null || true
 pkill -f chrome 2>/dev/null || true
 pkill -f node 2>/dev/null || true
-rm -rf "$INSTALL_DIR" "$USER_HOME" /root/.wppconnect 2>/dev/null || true
+rm -rf "$INSTALL_DIR" "$USER_HOME" /root/.wppconnect/sshbot-pro 2>/dev/null || true
 echo -e "${GREEN}✅ Limpieza completada${NC}"
 
 # ================================================
-# CREAR ESTRUCTURA
+# CREAR ESTRUCTURA (RUTAS FIJAS)
 # ================================================
-echo -e "\n${CYAN}📁 Creando estructura...${NC}"
+echo -e "\n${CYAN}📁 Creando estructura en rutas fijas...${NC}"
 mkdir -p "$INSTALL_DIR"/{data,config,sessions,logs,qr_codes,scripts,backups}
 mkdir -p "$USER_HOME"
-mkdir -p /root/.wppconnect/$SAFE_NAME
+mkdir -p /root/.wppconnect/sshbot-pro
 chmod -R 755 "$INSTALL_DIR"
-chmod -R 700 /root/.wppconnect/$SAFE_NAME
+chmod -R 700 /root/.wppconnect/sshbot-pro
+
+# Crear enlace simbólico para compatibilidad
+ln -sf "$INSTALL_DIR" "$USER_HOME"
+
 echo -e "${GREEN}✅ Estructura creada${NC}"
+echo -e "   • ${CYAN}$INSTALL_DIR${NC} (directorio principal)"
+echo -e "   • ${CYAN}$USER_HOME${NC} (enlace simbólico)"
+echo -e "   • ${CYAN}/root/.wppconnect/sshbot-pro${NC} (sesiones)"
 
 # ================================================
 # PEDIR DATOS DE CONFIGURACIÓN
@@ -151,7 +161,7 @@ SERVER_IP=${SERVER_IP:-"127.0.0.1"}
 echo -e "${GREEN}✅ IP detectada: $SERVER_IP${NC}"
 
 # ================================================
-# TEXTO DE INFORMACIÓN (ORIGINAL)
+# TEXTO DE INFORMACIÓN
 # ================================================
 cat > "$INFO_FILE" << 'EOF'
 🔥 INTERNET ILIMITADO ⚡📱
@@ -170,13 +180,12 @@ Es una aplicación que te permite conectar y navegar en internet de manera ilimi
 EOF
 
 # ================================================
-# CONFIG.JSON (MODIFICADO CON NUEVAS OPCIONES)
+# CONFIG.JSON (CON NOMBRE SOLO VISUAL)
 # ================================================
 cat > "$CONFIG_FILE" << EOF
 {
     "bot": {
         "name": "$BOT_NAME",
-        "safe_name": "$SAFE_NAME",
         "version": "5.0-REVENDEDORES",
         "server_ip": "$SERVER_IP",
         "default_password": "12345",
@@ -205,13 +214,13 @@ cat > "$CONFIG_FILE" << EOF
         "database": "$DB_FILE",
         "chromium": "/usr/bin/google-chrome",
         "qr_codes": "$INSTALL_DIR/qr_codes",
-        "sessions": "/root/.wppconnect/$SAFE_NAME"
+        "sessions": "/root/.wppconnect/sshbot-pro"
     }
 }
 EOF
 
 # ================================================
-# BASE DE DATOS (AMPLIADA CON TABLAS DE REVENDEDORES)
+# BASE DE DATOS (CON TABLAS DE REVENDEDORES)
 # ================================================
 echo -e "\n${CYAN}🗄️ Creando base de datos...${NC}"
 sqlite3 "$DB_FILE" << 'SQL'
@@ -380,7 +389,7 @@ chmod +x "$INSTALL_DIR/scripts/create_user.sh"
 # INSTALAR MÓDULOS NODE
 # ================================================
 echo -e "\n${CYAN}📦 Instalando módulos de Node.js...${NC}"
-cd "$USER_HOME"
+cd "$INSTALL_DIR"
 
 cat > package.json << 'PKGEOF'
 {
@@ -402,9 +411,9 @@ PKGEOF
 npm install
 
 # ================================================
-# CREAR ARCHIVO PRINCIPAL DEL BOT (bot.js) - MODIFICADO
+# CREAR ARCHIVO PRINCIPAL DEL BOT (bot.js)
 # ================================================
-cat > "$USER_HOME/bot.js" << 'BOTEOF'
+cat > "$INSTALL_DIR/bot.js" << 'BOTEOF'
 const wppconnect = require('@wppconnect-team/wppconnect');
 const qrcode = require('qrcode-terminal');
 const fs = require('fs');
@@ -515,7 +524,7 @@ function setUserState(phone, state, data = null) {
 // INICIAR BOT
 // ================================================
 wppconnect.create({
-    session: config.bot.safe_name,
+    session: 'sshbot-pro',
     headless: true,
     useChrome: true,
     browserArgs: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -524,8 +533,9 @@ wppconnect.create({
 
 function start(client) {
     console.log('\n✅ BOT SSH PRO v5.0 INICIADO');
-    console.log(`📱 Nombre: ${config.bot.name}`);
-    console.log(`💰 Descuento revendedores: ${config.bot.reseller_discount}%\n`);
+    console.log(`📱 Nombre visual: ${config.bot.name}`);
+    console.log(`💰 Descuento revendedores: ${config.bot.reseller_discount}%`);
+    console.log(`📁 Rutas fijas: /opt/sshbot-pro y /root/sshbot-pro\n`);
     
     client.on('qr', (qr) => {
         console.log('📱 ESCANEA EL QR:\n');
@@ -591,7 +601,7 @@ function start(client) {
                 setUserState(phone, 'main_menu');
                 await showMainMenu(client, phone);
             }
-            else if (['1','2','3','4','5','6','7'].includes(text)) {
+            else if (['1','2','3','4'].includes(text)) {
                 setUserState(phone, 'reseller_confirm', {
                     ...data,
                     selectedPlan: text
@@ -599,7 +609,7 @@ function start(client) {
                 await confirmResellerPlan(client, phone, text, data.discount);
             }
             else {
-                await client.sendText(phone, '❌ Opción no válida. Elige un número del 1 al 7 o 0 para volver.');
+                await client.sendText(phone, '❌ Opción no válida. Elige un número del 1 al 4 o 0 para volver.');
             }
         }
         else if (state === 'reseller_confirm') {
@@ -1104,7 +1114,7 @@ echo "*/15 * * * * root /opt/sshbot-pro/scripts/cleanup.sh" > /etc/cron.d/sshbot
 echo "0 3 * * * root tar -czf /opt/sshbot-pro/backups/backup-\$(date +\%Y\%m\%d).tar.gz -C /opt/sshbot-pro data config 2>/dev/null" >> /etc/cron.d/sshbot-cleanup
 
 # Iniciar con PM2
-cd "$USER_HOME"
+cd "$INSTALL_DIR"
 pm2 start bot.js --name sshbot-pro
 pm2 save
 pm2 startup
@@ -1130,8 +1140,13 @@ echo "║         ✅ INSTALACIÓN COMPLETADA EXITOSAMENTE              ║"
 echo "║                                                              ║"
 echo "╠══════════════════════════════════════════════════════════════╣"
 echo "║                                                              ║"
-echo "║  📱 RUTA DE INSTALACIÓN:                                     ║"
-echo "║     ${CYAN}/opt/sshbot-pro${GREEN} (MISMA QUE EL ORIGINAL)               ║"
+echo "║  📱 NOMBRE VISUAL:                                          ║"
+echo "║     ${CYAN}$BOT_NAME${GREEN}                                          ║"
+echo "║                                                              ║"
+echo "║  📁 RUTAS FIJAS (NO CAMBIAN):                                ║"
+echo "║     • Principal: ${CYAN}/opt/sshbot-pro${GREEN}                        ║"
+echo "║     • Usuario:   ${CYAN}/root/sshbot-pro${GREEN} (enlace simbólico)   ║"
+echo "║     • Sesiones:  ${CYAN}/root/.wppconnect/sshbot-pro${GREEN}           ║"
 echo "║                                                              ║"
 echo "║  🎫 REVENDEDORES DE EJEMPLO:                                 ║"
 echo "║     • Revendedor 1 - Código: ${YELLOW}$CODE1${GREEN}                   ║"
